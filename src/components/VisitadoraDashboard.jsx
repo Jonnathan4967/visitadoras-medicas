@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { LogOut, MapPin, Calendar, TrendingUp, Plus, FileText, DollarSign } from 'lucide-react'
+import { LogOut, MapPin, Calendar, TrendingUp, Plus, FileText, DollarSign, Download } from 'lucide-react'
 import RegistrarVisita from './RegistrarVisita'
 import ListaVisitas from './ListaVisitas'
 import ComisionesVisitadora from './ComisionesVisitadora'
+import ExportarReportes from './ExportarReportes'
 import './Dashboard.css'
 
 export default function VisitadoraDashboard() {
@@ -148,11 +149,23 @@ export default function VisitadoraDashboard() {
                 <DollarSign size={18} />
                 Comisiones
               </button>
+              <button
+                className={`tab ${activeTab === 'reportes' ? 'active' : ''}`}
+                onClick={() => setActiveTab('reportes')}
+              >
+                <Download size={18} />
+                Reportes
+              </button>
             </div>
 
             <div className="tab-content">
               {activeTab === 'visitas' && <ListaVisitas />}
               {activeTab === 'comisiones' && <ComisionesVisitadora />}
+              {activeTab === 'reportes' && (
+                <div className="card">
+                  <ExportarReportes tipo="visitadora" />
+                </div>
+              )}
             </div>
           </div>
         </div>
