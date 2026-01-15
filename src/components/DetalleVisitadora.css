@@ -262,15 +262,68 @@
   background-color: #f9fafb;
 }
 
-.visita-details-detalle p {
-  margin: 8px 0;
+.detail-row {
+  margin: 12px 0;
+  padding: 12px;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.detail-row p {
+  margin: 0 0 8px 0;
   font-size: 13px;
   color: #374151;
   line-height: 1.5;
 }
 
+.detail-row p strong {
+  color: #1f2937;
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* Servicios/Estudios Tags */
+.servicios-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.servicio-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Firma Display */
+.firma-display {
+  margin-top: 8px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.firma-imagen {
+  max-width: 100%;
+  height: auto;
+  max-height: 120px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background-color: white;
+}
+
 .map-container-mini {
-  margin-top: 12px;
+  margin-top: 8px;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid #e5e7eb;

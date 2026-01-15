@@ -382,26 +382,64 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
 
                     {expandedVisitaId === visita.id && (
                       <div className="visita-details-detalle">
-                        <p><strong>Dirección:</strong> {visita.direccion}</p>
+                        <div className="detail-row">
+                          <p><strong>Dirección:</strong> {visita.direccion}</p>
+                        </div>
+                        
                         {visita.tipo_establecimiento && (
-                          <p><strong>Tipo:</strong> {visita.tipo_establecimiento}</p>
+                          <div className="detail-row">
+                            <p><strong>Tipo:</strong> {visita.tipo_establecimiento}</p>
+                          </div>
                         )}
+
+                        {visita.productos_presentados && visita.productos_presentados.length > 0 && (
+                          <div className="detail-row">
+                            <p><strong>Servicios/Estudios:</strong></p>
+                            <div className="servicios-tags">
+                              {visita.productos_presentados.map((servicio, index) => (
+                                <span key={index} className="servicio-tag">
+                                  {servicio}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         {visita.observaciones && (
-                          <p><strong>Observaciones:</strong> {visita.observaciones}</p>
+                          <div className="detail-row">
+                            <p><strong>Observaciones:</strong> {visita.observaciones}</p>
+                          </div>
                         )}
+
                         {visita.latitud && visita.longitud && (
-                          <div className="map-container-mini">
-                            <MapContainer
-                              center={[visita.latitud, visita.longitud]}
-                              zoom={13}
-                              style={{ height: '150px', width: '100%' }}
-                              scrollWheelZoom={false}
-                            >
-                              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                              <Marker position={[visita.latitud, visita.longitud]}>
-                                <Popup>{visita.nombre_cliente}</Popup>
-                              </Marker>
-                            </MapContainer>
+                          <div className="detail-row">
+                            <p><strong>Ubicación GPS:</strong></p>
+                            <div className="map-container-mini">
+                              <MapContainer
+                                center={[visita.latitud, visita.longitud]}
+                                zoom={13}
+                                style={{ height: '150px', width: '100%' }}
+                                scrollWheelZoom={false}
+                              >
+                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                <Marker position={[visita.latitud, visita.longitud]}>
+                                  <Popup>{visita.nombre_cliente}</Popup>
+                                </Marker>
+                              </MapContainer>
+                            </div>
+                          </div>
+                        )}
+
+                        {visita.firma_url && (
+                          <div className="detail-row">
+                            <p><strong>Firma del Cliente:</strong></p>
+                            <div className="firma-display">
+                              <img 
+                                src={visita.firma_url} 
+                                alt="Firma del cliente" 
+                                className="firma-imagen"
+                              />
+                            </div>
                           </div>
                         )}
                       </div>
