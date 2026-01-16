@@ -6,6 +6,7 @@ import RegistrarVisita from './RegistrarVisita'
 import ListaVisitas from './ListaVisitas'
 import ComisionesVisitadora from './ComisionesVisitadora'
 import ExportarReportes from './ExportarReportes'
+import Footer from './Footer'
 import './Dashboard.css'
 
 export default function VisitadoraDashboard() {
@@ -170,6 +171,8 @@ export default function VisitadoraDashboard() {
           </div>
         </div>
       </div>
+
+      <Footer />
 
       {showRegistrarVisita && (
         <RegistrarVisita

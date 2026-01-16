@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
 import { Download, FileSpreadsheet, FileText, Calendar } from 'lucide-react'
@@ -16,11 +16,11 @@ export default function ExportarReportes({ tipo = 'visitadora' }) {
   const [visitadoras, setVisitadoras] = useState([])
 
   // Cargar visitadoras si es admin
-  useState(() => {
+  useEffect(() => {
     if (tipo === 'admin') {
       loadVisitadoras()
     }
-  }, [])
+  }, [tipo])
 
   const loadVisitadoras = async () => {
     const { data } = await supabase

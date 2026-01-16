@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { ChevronDown, ChevronUp, MapPin, Calendar, FileText, Package, Clock } from 'lucide-react'
+import { ChevronDown, ChevronUp, MapPin, Calendar, FileText, Package, Clock, Search, Filter, X } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import './ListaVisitas.css'
@@ -9,9 +9,18 @@ import './ListaVisitas.css'
 export default function ListaVisitas() {
   const user = useAuthStore(state => state.user)
   const [visitas, setVisitas] = useState([])
+  const [visitasFiltradas, setVisitasFiltradas] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState(null)
   const [isListExpanded, setIsListExpanded] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  
+  const [filtros, setFiltros] = useState({
+    busqueda: '',
+    fechaInicio: '',
+    fechaFin: '',
+    tipo: ''
+  })
 
   useEffect(() => {
     loadVisitas()
@@ -28,18 +37,80 @@ export default function ListaVisitas() {
     }
   }, [user])
 
+  useEffect(() => {
+    aplicarFiltros()
+  }, [visitas, filtros])
+
   const loadVisitas = async () => {
     setLoading(true)
+    
+    // Solo cargar visitas de hoy
+    const hoy = new Date().toISOString().split('T')[0]
+    
     const { data, error } = await supabase
       .from('visitas')
       .select('*')
       .eq('visitadora_id', user.id)
+      .gte('created_at', `${hoy}T00:00:00`)
+      .lte('created_at', `${hoy}T23:59:59`)
       .order('created_at', { ascending: false })
 
     if (data) {
       setVisitas(data)
+      setVisitasFiltradas(data)
     }
     setLoading(false)
+  }
+
+  const aplicarFiltros = () => {
+    let resultado = [...visitas]
+
+    // Filtro por búsqueda (nombre o dirección)
+    if (filtros.busqueda) {
+      resultado = resultado.filter(v => 
+        v.nombre_cliente.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
+        v.direccion.toLowerCase().includes(filtros.busqueda.toLowerCase())
+      )
+    }
+
+    // Filtro por fecha inicio
+    if (filtros.fechaInicio) {
+      resultado = resultado.filter(v => 
+        new Date(v.created_at) >= new Date(filtros.fechaInicio)
+      )
+    }
+
+    // Filtro por fecha fin
+    if (filtros.fechaFin) {
+      const fechaFin = new Date(filtros.fechaFin)
+      fechaFin.setHours(23, 59, 59, 999)
+      resultado = resultado.filter(v => 
+        new Date(v.created_at) <= fechaFin
+      )
+    }
+
+    // Filtro por tipo de establecimiento
+    if (filtros.tipo) {
+      resultado = resultado.filter(v => v.tipo_establecimiento === filtros.tipo)
+    }
+
+    setVisitasFiltradas(resultado)
+  }
+
+  const handleFiltroChange = (e) => {
+    setFiltros({
+      ...filtros,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const limpiarFiltros = () => {
+    setFiltros({
+      busqueda: '',
+      fechaInicio: '',
+      fechaFin: '',
+      tipo: ''
+    })
   }
 
   const toggleExpand = (id) => {
@@ -86,30 +157,113 @@ export default function ListaVisitas() {
         <div>
           <h3>Historial de Visitas</h3>
           <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-            {visitas.length} {visitas.length === 1 ? 'visita registrada' : 'visitas registradas'}
+            {visitasFiltradas.length} de {visitas.length} {visitas.length === 1 ? 'visita' : 'visitas'}
           </p>
         </div>
-        <button 
-          onClick={() => setIsListExpanded(!isListExpanded)}
-          className="btn btn-secondary btn-small"
-        >
-          {isListExpanded ? (
-            <>
-              <ChevronUp size={16} />
-              Ocultar
-            </>
-          ) : (
-            <>
-              <ChevronDown size={16} />
-              Mostrar
-            </>
-          )}
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={() => setShowFilters(!showFilters)}
+            className={`btn btn-secondary btn-small ${showFilters ? 'active' : ''}`}
+          >
+            <Filter size={16} />
+            Filtros
+          </button>
+          <button 
+            onClick={() => setIsListExpanded(!isListExpanded)}
+            className="btn btn-secondary btn-small"
+          >
+            {isListExpanded ? (
+              <>
+                <ChevronUp size={16} />
+                Ocultar
+              </>
+            ) : (
+              <>
+                <ChevronDown size={16} />
+                Mostrar
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
+      {/* Panel de Filtros */}
+      {showFilters && (
+        <div className="filters-panel">
+          <div className="filters-grid">
+            <div className="filter-item">
+              <label>
+                <Search size={14} />
+                Buscar por nombre o dirección
+              </label>
+              <input
+                type="text"
+                name="busqueda"
+                className="input"
+                placeholder="Buscar..."
+                value={filtros.busqueda}
+                onChange={handleFiltroChange}
+              />
+            </div>
+
+            <div className="filter-item">
+              <label>Desde</label>
+              <input
+                type="date"
+                name="fechaInicio"
+                className="input"
+                value={filtros.fechaInicio}
+                onChange={handleFiltroChange}
+              />
+            </div>
+
+            <div className="filter-item">
+              <label>Hasta</label>
+              <input
+                type="date"
+                name="fechaFin"
+                className="input"
+                value={filtros.fechaFin}
+                onChange={handleFiltroChange}
+              />
+            </div>
+
+            <div className="filter-item">
+              <label>Tipo de Establecimiento</label>
+              <select
+                name="tipo"
+                className="input"
+                value={filtros.tipo}
+                onChange={handleFiltroChange}
+              >
+                <option value="">Todos</option>
+                <option value="Hospital">Hospital</option>
+                <option value="Clínica">Clínica</option>
+                <option value="Centro de Diagnóstico">Centro de Diagnóstico</option>
+                <option value="Laboratorio">Laboratorio</option>
+                <option value="Consultorio Médico">Consultorio Médico</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="filters-actions">
+            <button onClick={limpiarFiltros} className="btn btn-secondary btn-small">
+              <X size={14} />
+              Limpiar Filtros
+            </button>
+          </div>
+        </div>
+      )}
+
       {isListExpanded && (
-        <div className="visitas-list">
-          {visitas.map((visita) => (
+        visitasFiltradas.length === 0 ? (
+          <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+            No se encontraron visitas con estos filtros
+          </div>
+        ) : (
+          <div className="visitas-list">
+            {visitasFiltradas.map((visita) => (
           <div key={visita.id} className="visita-item">
             <div 
               className="visita-header"
@@ -250,6 +404,7 @@ export default function ListaVisitas() {
           </div>
         ))}
       </div>
+        )
       )}
     </div>
   )

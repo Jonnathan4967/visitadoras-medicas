@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { LogOut, Users, Eye, DollarSign } from 'lucide-react'
-import ComisionesAdmin from './ComisionesAdmin'
+import { LogOut, Users, Eye, DollarSign, Download, Stethoscope } from 'lucide-react'
+import ComisionesMedicos from './ComisionesMedicos'
 import DetalleVisitadora from './DetalleVisitadora'
+import ExportarReportes from './ExportarReportes'
+import GestionMedicos from './GestionMedicos'
+import Footer from './Footer'
 import './Dashboard.css'
 
 export default function AdminDashboard() {
@@ -93,11 +96,25 @@ export default function AdminDashboard() {
               Visitadoras
             </button>
             <button
+              className={`tab ${activeTab === 'medicos' ? 'active' : ''}`}
+              onClick={() => setActiveTab('medicos')}
+            >
+              <Stethoscope size={18} />
+              Médicos
+            </button>
+            <button
               className={`tab ${activeTab === 'comisiones' ? 'active' : ''}`}
               onClick={() => setActiveTab('comisiones')}
             >
               <DollarSign size={18} />
               Comisiones
+            </button>
+            <button
+              className={`tab ${activeTab === 'reportes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('reportes')}
+            >
+              <Download size={18} />
+              Reportes
             </button>
           </div>
 
@@ -165,10 +182,20 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {activeTab === 'comisiones' && <ComisionesAdmin />}
+            {activeTab === 'medicos' && <GestionMedicos />}
+
+            {activeTab === 'comisiones' && <ComisionesMedicos />}
+
+            {activeTab === 'reportes' && (
+              <div className="card">
+                <ExportarReportes tipo="admin" />
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      <Footer />
 
       {/* Modal de Detalle */}
       {visitadoraSeleccionada && (
