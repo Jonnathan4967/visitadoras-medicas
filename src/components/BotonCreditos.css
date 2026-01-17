@@ -1,10 +1,10 @@
 /* Botón Flotante */
 .btn-flotante-creditos {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
+  bottom: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
@@ -16,6 +16,11 @@
   justify-content: center;
   transition: all 0.3s;
   z-index: 999;
+}
+
+.btn-flotante-creditos svg {
+  width: 18px;
+  height: 18px;
 }
 
 .btn-flotante-creditos:hover {
@@ -284,10 +289,15 @@
 /* Responsive */
 @media (max-width: 768px) {
   .btn-flotante-creditos {
-    bottom: 16px;
-    right: 16px;
-    width: 46px;
-    height: 46px;
+    bottom: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-flotante-creditos svg {
+    width: 16px;
+    height: 16px;
   }
 
   .modal-creditos {

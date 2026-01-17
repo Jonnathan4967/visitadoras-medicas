@@ -124,14 +124,14 @@ export default function AdminDashboard() {
   }
 
   const handleEliminarVisitadora = async (visitadoraId, nombre) => {
-    if (!confirm(`¿Estás seguro de eliminar a ${nombre}?\n\nEsta acción marcará a la visitadora como inactiva.`)) {
+    if (!confirm(`¿Estás seguro de eliminar a ${nombre}?\n\nEsta acción deshabilitará el acceso de la visitadora.`)) {
       return
     }
 
     try {
       console.log('Intentando eliminar visitadora:', visitadoraId)
       
-      // Marcar como inactivo
+      // 1. Marcar como inactivo en profiles
       const { data, error } = await supabase
         .from('profiles')
         .update({ activo: false })
@@ -141,6 +141,17 @@ export default function AdminDashboard() {
       if (error) {
         console.error('Error de Supabase:', error)
         throw error
+      }
+
+      // 2. Deshabilitar usuario en Auth (requiere service_role key)
+      // Como no podemos usar service_role desde el cliente, 
+      // creamos una función RPC en Supabase
+      const { error: authError } = await supabase.rpc('disable_user', {
+        user_id: visitadoraId
+      })
+
+      if (authError) {
+        console.warn('No se pudo deshabilitar en Auth, pero se marcó como inactivo:', authError)
       }
 
       console.log('Visitadora marcada como inactiva:', data)
