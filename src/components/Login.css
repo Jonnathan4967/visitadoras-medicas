@@ -7,37 +7,11 @@
   padding: 20px;
   position: relative;
   overflow: hidden;
-}
-
-/* Imagen de fondo */
-.login-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('/conrad-building.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 0;
-}
-
-/* Overlay opaco */
-.login-container::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   background: linear-gradient(
     135deg,
     rgba(0, 0, 0, 0.4) 0%,
     rgba(30, 58, 138, 0.5) 100%
-  );
-  z-index: 1;
+  ), url('/conrad-building.jpg') center/cover no-repeat;
 }
 
 /* Login Card */
@@ -73,27 +47,6 @@
   font-size: 15px;
   color: #6b7280;
   margin: 0;
-}
-
-/* Logo/Branding opcional */
-.login-logo {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.login-logo h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #3b82f6;
-  margin: 0;
-}
-
-.login-logo p {
-  font-size: 13px;
-  color: #6b7280;
-  margin: 4px 0 0 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 /* Form */
@@ -171,20 +124,6 @@
 .login-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-/* Footer */
-.login-footer {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.login-footer p {
-  font-size: 13px;
-  color: #6b7280;
-  margin: 0;
 }
 
 /* Responsive */

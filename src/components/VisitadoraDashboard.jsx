@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore'
 import { LogOut, MapPin, Calendar, TrendingUp, Plus, FileText, DollarSign, Download, Stethoscope } from 'lucide-react'
 import RegistrarVisita from './RegistrarVisita'
 import ListaVisitas from './ListaVisitas'
-import ComisionesVisitadora from './ComisionesVisitadora'
+import ComisionesMensualesVisitadora from './ComisionesMensualesVisitadora'
 import ExportarReportes from './ExportarReportes'
 import MedicosVisitadora from './MedicosVisitadora'
 import BotonCreditos from './BotonCreditos'
@@ -165,7 +165,7 @@ export default function VisitadoraDashboard() {
           <div className="tab-content">
             {activeTab === 'visitas' && <ListaVisitas />}
             {activeTab === 'medicos' && <MedicosVisitadora />}
-            {activeTab === 'comisiones' && <ComisionesVisitadora />}
+            {activeTab === 'comisiones' && <ComisionesMensualesVisitadora />}
             {activeTab === 'reportes' && (
               <div className="card">
                 <ExportarReportes tipo="visitadora" />

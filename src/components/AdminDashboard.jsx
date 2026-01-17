@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
 import { LogOut, Users, Eye, DollarSign, Download, Stethoscope, Plus, Trash2, X, Save } from 'lucide-react'
-import ComisionesMedicos from './ComisionesMedicos'
+import ComisionesMensualesAdmin from './ComisionesMensualesAdmin'
 import DetalleVisitadora from './DetalleVisitadora'
 import ExportarReportes from './ExportarReportes'
 import GestionMedicos from './GestionMedicos'
@@ -301,7 +301,7 @@ export default function AdminDashboard() {
 
             {activeTab === 'medicos' && <GestionMedicos />}
 
-            {activeTab === 'comisiones' && <ComisionesMedicos />}
+            {activeTab === 'comisiones' && <ComisionesMensualesAdmin />}
 
             {activeTab === 'reportes' && (
               <div className="card">
