@@ -399,3 +399,320 @@
     font-size: 28px;
   }
 }
+
+/* ========================================
+   OPTIMIZACIÓN MÓVIL MEJORADA
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* Header más compacto */
+  .dashboard-header {
+    padding: 12px 16px;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 18px;
+    margin: 0;
+  }
+
+  .dashboard-header p {
+    display: none; /* Ocultar subtítulo en móvil */
+  }
+
+  .dashboard-header .btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  /* Contenido más compacto */
+  .dashboard-content {
+    padding: 16px;
+  }
+
+  /* Stats cards en móvil */
+  .stats-grid-visitadora {
+    gap: 12px;
+  }
+
+  .stat-card-visitadora {
+    padding: 16px;
+  }
+
+  .stat-icon-visitadora {
+    width: 48px;
+    height: 48px;
+  }
+
+  .stat-icon-visitadora svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .stat-number {
+    font-size: 28px;
+  }
+
+  .stat-zona {
+    font-size: 16px;
+  }
+
+  /* Botón registrar más pequeño */
+  .btn-large {
+    padding: 12px 20px;
+    font-size: 15px;
+    margin-bottom: 16px !important;
+  }
+
+  /* Tabs más compactas */
+  .tabs-container {
+    border-radius: 8px;
+  }
+
+  .tabs {
+    padding: 0 8px;
+    gap: 2px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    padding: 12px 16px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .tab svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Cards más compactas */
+  .card {
+    border-radius: 8px;
+  }
+
+  .card-header {
+    padding: 16px;
+  }
+
+  .card-header h3 {
+    font-size: 18px;
+  }
+
+  /* Toggle buttons más compactas */
+  .vista-toggle-section {
+    padding: 12px;
+  }
+
+  .toggle-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  /* Visitas más compactas */
+  .visita-card {
+    border-radius: 8px;
+  }
+
+  .visita-header {
+    padding: 16px;
+  }
+
+  .visita-info h4 {
+    font-size: 15px;
+  }
+
+  .meta-item {
+    font-size: 12px;
+  }
+
+  /* Filtros en columna pero más compactos */
+  .filtros-avanzados {
+    padding: 12px;
+  }
+
+  .filtros-avanzados h4 {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .filtro-item label {
+    font-size: 12px;
+  }
+
+  .input-small {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  /* Médicos grid en móvil */
+  .medicos-grid {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .medico-card-view,
+  .medico-card-admin {
+    padding: 16px;
+  }
+
+  .medico-header {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .medico-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .medico-info-principal h4 {
+    font-size: 15px;
+  }
+
+  .especialidad-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  /* Botones flotantes más pequeños */
+  .btn-flotante-creditos {
+    bottom: 16px;
+    right: 16px;
+    width: 46px;
+    height: 46px;
+  }
+
+  /* Reducir espaciados generales */
+  .visitas-list {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  /* Search más compacto */
+  .search-section {
+    padding: 12px;
+  }
+
+  .search-container {
+    padding: 10px 12px;
+  }
+
+  .search-input-medicos {
+    font-size: 13px;
+  }
+
+  /* Modal en móvil */
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-content {
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+  }
+
+  .modal-header h2 {
+    font-size: 18px;
+  }
+
+  /* Forms más compactas */
+  .visitadora-form,
+  .medico-form {
+    padding: 16px 20px 20px;
+    gap: 16px;
+  }
+
+  .form-group {
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+  }
+
+  .input,
+  .input-small {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  /* Botones en móvil */
+  .btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  /* Empty states más compactos */
+  .empty-panel {
+    padding: 40px 16px;
+  }
+
+  .empty-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 16px;
+  }
+
+  .empty-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .empty-content h3 {
+    font-size: 16px;
+  }
+
+  .empty-content p {
+    font-size: 13px;
+  }
+}
+
+/* Móviles muy pequeños (< 375px) */
+@media (max-width: 375px) {
+  .dashboard-header h1 {
+    font-size: 16px;
+  }
+
+  .stat-number {
+    font-size: 24px;
+  }
+
+  .tab {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .card-header h3 {
+    font-size: 16px;
+  }
+
+  .btn-large {
+    font-size: 14px;
+  }
+}
+
+/* Landscape móvil */
+@media (max-width: 768px) and (orientation: landscape) {
+  .dashboard-header {
+    padding: 8px 16px;
+  }
+
+  .stats-grid-visitadora {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .stat-card-visitadora {
+    padding: 12px;
+  }
+}
