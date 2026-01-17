@@ -26,12 +26,19 @@ export default function Login() {
 
       if (error) throw error
 
-      // Verificar si es admin
+      // Verificar perfil y si está activo
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, activo')
         .eq('id', data.user.id)
         .single()
+
+      // Verificar si el usuario está activo
+      if (profile?.activo === false) {
+        // Cerrar sesión inmediatamente
+        await supabase.auth.signOut()
+        throw new Error('Tu cuenta ha sido desactivada. Contacta al administrador.')
+      }
 
       setUser(data.user)
       setIsAdmin(profile?.role === 'admin')

@@ -34,9 +34,16 @@ function App() {
   const checkUserRole = async (user) => {
     const { data } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, activo')
       .eq('id', user.id)
       .single()
+
+    // Si el usuario está inactivo, cerrar sesión
+    if (data?.activo === false) {
+      await supabase.auth.signOut()
+      setUser(null)
+      return
+    }
 
     setUser(user)
     setIsAdmin(data?.role === 'admin')
