@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { LogOut, Users, Eye, DollarSign, Download, Stethoscope } from 'lucide-react'
+import { LogOut, Users, Eye, DollarSign, Download, Stethoscope, Plus, Trash2, X, Save } from 'lucide-react'
 import ComisionesMedicos from './ComisionesMedicos'
 import DetalleVisitadora from './DetalleVisitadora'
 import ExportarReportes from './ExportarReportes'
 import GestionMedicos from './GestionMedicos'
-import Footer from './Footer'
+import BotonCreditos from './BotonCreditos'
 import './Dashboard.css'
 
 export default function AdminDashboard() {
@@ -15,6 +15,16 @@ export default function AdminDashboard() {
   const [visitadoras, setVisitadoras] = useState([])
   const [loading, setLoading] = useState(true)
   const [visitadoraSeleccionada, setVisitadoraSeleccionada] = useState(null)
+  
+  // Estados para agregar visitadora
+  const [showAgregarModal, setShowAgregarModal] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    nombre: '',
+    zona: ''
+  })
 
   useEffect(() => {
     if (activeTab === 'visitadoras') {
@@ -28,6 +38,7 @@ export default function AdminDashboard() {
       .from('profiles')
       .select('*')
       .eq('role', 'visitadora')
+      .eq('activo', true) // Solo visitadoras activas
       .order('nombre')
 
     if (data) {
@@ -54,38 +65,116 @@ export default function AdminDashboard() {
           }
         })
       )
-
       setVisitadoras(visitadorasConStats)
     }
     setLoading(false)
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    logout()
   }
 
   const handleVerDetalle = (visitadoraId) => {
     setVisitadoraSeleccionada(visitadoraId)
   }
 
-  const handleCerrarDetalle = () => {
-    setVisitadoraSeleccionada(null)
-    loadVisitadoras() // Recargar por si se editó algo
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const handleAgregarVisitadora = async (e) => {
+    e.preventDefault()
+    setGuardando(true)
+
+    try {
+      // 1. Crear usuario en Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            nombre: formData.nombre,
+            role: 'visitadora'
+          }
+        }
+      })
+
+      if (authError) throw authError
+
+      // 2. Actualizar perfil con información adicional
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          nombre: formData.nombre,
+          zona: formData.zona,
+          role: 'visitadora'
+        })
+        .eq('id', authData.user.id)
+
+      if (profileError) throw profileError
+
+      alert('✅ Visitadora agregada exitosamente')
+      setShowAgregarModal(false)
+      resetForm()
+      loadVisitadoras()
+    } catch (error) {
+      alert('❌ Error: ' + error.message)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const handleEliminarVisitadora = async (visitadoraId, nombre) => {
+    if (!confirm(`¿Estás seguro de eliminar a ${nombre}?\n\nEsta acción marcará a la visitadora como inactiva.`)) {
+      return
+    }
+
+    try {
+      console.log('Intentando eliminar visitadora:', visitadoraId)
+      
+      // Marcar como inactivo
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ activo: false })
+        .eq('id', visitadoraId)
+        .select()
+
+      if (error) {
+        console.error('Error de Supabase:', error)
+        throw error
+      }
+
+      console.log('Visitadora marcada como inactiva:', data)
+      alert('✅ Visitadora eliminada exitosamente')
+      loadVisitadoras()
+    } catch (error) {
+      console.error('Error completo:', error)
+      alert('❌ Error al eliminar: ' + error.message)
+    }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      email: '',
+      password: '',
+      nombre: '',
+      zona: ''
+    })
   }
 
   return (
-    <div className="dashboard-container">
-      <nav className="dashboard-nav">
-        <h2>Panel de Administrador</h2>
-        <button onClick={handleLogout} className="btn btn-secondary">
-          <LogOut size={16} />
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <div>
+          <h1>Panel de Administrador</h1>
+          <p>Sistema de Gestión de Visitadoras Médicas</p>
+        </div>
+        <button onClick={logout} className="btn btn-secondary">
+          <LogOut size={18} />
           Cerrar Sesión
         </button>
-      </nav>
+      </div>
 
       <div className="dashboard-content">
-        {/* Tabs */}
         <div className="tabs-container">
           <div className="tabs">
             <button
@@ -128,16 +217,24 @@ export default function AdminDashboard() {
                       Gestión y seguimiento de visitadoras
                     </p>
                   </div>
-                  <Users size={24} color="#3b82f6" />
+                  <button 
+                    onClick={() => setShowAgregarModal(true)}
+                    className="btn btn-primary"
+                  >
+                    <Plus size={18} />
+                    Agregar Visitadora
+                  </button>
                 </div>
 
                 {loading ? (
                   <div style={{ textAlign: 'center', padding: '40px' }}>
-                    <div className="spinner" style={{ margin: '0 auto' }}></div>
+                    <p>Cargando...</p>
                   </div>
                 ) : visitadoras.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                    No hay visitadoras registradas
+                    <Users size={48} color="#9ca3af" style={{ margin: '0 auto 16px' }} />
+                    <h3>No hay visitadoras registradas</h3>
+                    <p>Agrega la primera visitadora para comenzar</p>
                   </div>
                 ) : (
                   <div className="table-container">
@@ -155,7 +252,7 @@ export default function AdminDashboard() {
                       <tbody>
                         {visitadoras.map((v) => (
                           <tr key={v.id}>
-                            <td>{v.nombre || 'Sin nombre'}</td>
+                            <td><strong>{v.nombre || 'Sin nombre'}</strong></td>
                             <td>{v.email}</td>
                             <td>{v.zona || 'No asignada'}</td>
                             <td>
@@ -165,13 +262,22 @@ export default function AdminDashboard() {
                               <span className="badge badge-green">{v.totalVisitas}</span>
                             </td>
                             <td>
-                              <button 
-                                className="btn-icon" 
-                                title="Ver detalles"
-                                onClick={() => handleVerDetalle(v.id)}
-                              >
-                                <Eye size={16} />
-                              </button>
+                              <div className="action-buttons">
+                                <button 
+                                  className="btn-icon" 
+                                  title="Ver detalles"
+                                  onClick={() => handleVerDetalle(v.id)}
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <button 
+                                  className="btn-icon btn-danger" 
+                                  title="Eliminar"
+                                  onClick={() => handleEliminarVisitadora(v.id, v.nombre)}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -195,13 +301,99 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <Footer />
+      <BotonCreditos />
+
+      {/* Modal Agregar Visitadora */}
+      {showAgregarModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Agregar Nueva Visitadora</h2>
+              <button onClick={() => setShowAgregarModal(false)} className="btn-close">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAgregarVisitadora} className="visitadora-form">
+              <div className="form-group">
+                <label>Nombre Completo *</label>
+                <input
+                  type="text"
+                  name="nombre"
+                  className="input"
+                  placeholder="Ej: María González"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Email *</label>
+                <input
+                  type="email"
+                  name="email"
+                  className="input"
+                  placeholder="ejemplo@correo.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Contraseña *</label>
+                <input
+                  type="password"
+                  name="password"
+                  className="input"
+                  placeholder="Mínimo 6 caracteres"
+                  value={formData.password}
+                  onChange={handleChange}
+                  minLength="6"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Zona (opcional)</label>
+                <input
+                  type="text"
+                  name="zona"
+                  className="input"
+                  placeholder="Ej: Zona Norte, Chimaltenango, etc."
+                  value={formData.zona}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowAgregarModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-success"
+                  disabled={guardando}
+                >
+                  <Save size={16} />
+                  {guardando ? 'Guardando...' : 'Guardar Visitadora'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Detalle */}
       {visitadoraSeleccionada && (
         <DetalleVisitadora
           visitadoraId={visitadoraSeleccionada}
-          onClose={handleCerrarDetalle}
+          onClose={() => setVisitadoraSeleccionada(null)}
         />
       )}
     </div>
