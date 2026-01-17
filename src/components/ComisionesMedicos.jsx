@@ -1,16 +1,26 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { DollarSign, Plus, X, Save, Calendar, CheckCircle } from 'lucide-react'
+import { DollarSign, Plus, X, Save, Calendar, CheckCircle, Eye, UserPlus } from 'lucide-react'
 import './ComisionesMedicos.css'
 
 export default function ComisionesMedicos() {
   const user = useAuthStore(state => state.user)
   const [comisiones, setComisiones] = useState([])
   const [medicos, setMedicos] = useState([])
+  const [visitadoras, setVisitadoras] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showAsignarModal, setShowAsignarModal] = useState(false)
+  const [showFirmaModal, setShowFirmaModal] = useState(false)
   const [guardando, setGuardando] = useState(false)
+  const [comisionParaAsignar, setComisionParaAsignar] = useState(null)
+  const [visitadoraSeleccionada, setVisitadoraSeleccionada] = useState('')
+  const [firmaUrl, setFirmaUrl] = useState('')
+  
+  // Filtros
+  const [filtroEstado, setFiltroEstado] = useState('todas') // pendiente, pagado, todas
+  const [filtroVisitadora, setFiltroVisitadora] = useState('todas')
 
   const [formData, setFormData] = useState({
     medico_id: '',
@@ -18,20 +28,35 @@ export default function ComisionesMedicos() {
     paciente_nombre: '',
     estudio_realizado: '',
     monto_comision: '',
-    observaciones: ''
+    observaciones: '',
+    asignada_a: '' // Nueva: puede quedar vacío para pool general
   })
 
   useEffect(() => {
     loadComisiones()
     loadMedicos()
-  }, [])
+    loadVisitadoras()
+  }, [filtroEstado, filtroVisitadora])
 
   const loadComisiones = async () => {
     setLoading(true)
-    const { data, error } = await supabase
+    
+    let query = supabase
       .from('vista_comisiones_medicos')
       .select('*')
-      .order('fecha_referencia', { ascending: false })
+      .order('created_at', { ascending: false })
+
+    // Filtro por estado
+    if (filtroEstado !== 'todas') {
+      query = query.eq('estado', filtroEstado)
+    }
+
+    // Filtro por visitadora
+    if (filtroVisitadora !== 'todas') {
+      query = query.eq('visitadora_id', filtroVisitadora)
+    }
+
+    const { data, error } = await query
 
     if (data) {
       setComisiones(data)
@@ -51,6 +76,18 @@ export default function ComisionesMedicos() {
     }
   }
 
+  const loadVisitadoras = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, nombre, email')
+      .eq('role', 'visitadora')
+      .order('nombre')
+
+    if (data) {
+      setVisitadoras(data)
+    }
+  }
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -63,13 +100,25 @@ export default function ComisionesMedicos() {
     setGuardando(true)
 
     try {
+      const dataToInsert = {
+        medico_id: formData.medico_id,
+        visitadora_id: user.id,
+        fecha_referencia: formData.fecha_referencia,
+        paciente_nombre: formData.paciente_nombre,
+        estudio_realizado: formData.estudio_realizado,
+        monto_comision: formData.monto_comision,
+        observaciones: formData.observaciones,
+        estado: 'pendiente'
+      }
+
+      // Solo agregar asignada_a si se seleccionó una visitadora
+      if (formData.asignada_a && formData.asignada_a !== '') {
+        dataToInsert.asignada_a = formData.asignada_a
+      }
+
       const { error } = await supabase
         .from('comisiones_medicos')
-        .insert([{
-          ...formData,
-          visitadora_id: user.id,
-          estado: 'pendiente'
-        }])
+        .insert([dataToInsert])
 
       if (error) throw error
 
@@ -84,20 +133,38 @@ export default function ComisionesMedicos() {
     }
   }
 
-  const marcarPagado = async (id) => {
-    if (!confirm('¿Marcar esta comisión como pagada?')) return
+  const abrirModalAsignar = (comision) => {
+    setComisionParaAsignar(comision)
+    setVisitadoraSeleccionada('')
+    setShowAsignarModal(true)
+  }
 
-    const { error } = await supabase
-      .from('comisiones_medicos')
-      .update({
-        estado: 'pagado',
-        fecha_pago: new Date().toISOString().split('T')[0]
-      })
-      .eq('id', id)
-
-    if (!error) {
-      loadComisiones()
+  const handleAsignar = async () => {
+    if (!visitadoraSeleccionada) {
+      alert('⚠️ Debes seleccionar una visitadora')
+      return
     }
+
+    try {
+      const { error } = await supabase
+        .rpc('asignar_comision', {
+          p_comision_id: comisionParaAsignar.id,
+          p_visitadora_id: visitadoraSeleccionada
+        })
+
+      if (error) throw error
+
+      alert('✅ Comisión asignada exitosamente')
+      setShowAsignarModal(false)
+      loadComisiones()
+    } catch (error) {
+      alert('Error: ' + error.message)
+    }
+  }
+
+  const verFirma = (url) => {
+    setFirmaUrl(url)
+    setShowFirmaModal(true)
   }
 
   const resetForm = () => {
@@ -107,7 +174,8 @@ export default function ComisionesMedicos() {
       paciente_nombre: '',
       estudio_realizado: '',
       monto_comision: '',
-      observaciones: ''
+      observaciones: '',
+      asignada_a: ''
     })
   }
 
@@ -142,7 +210,7 @@ export default function ComisionesMedicos() {
           <div>
             <h3>Comisiones para Médicos</h3>
             <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-              Registro de comisiones por referencias de pacientes
+              Registro y gestión de comisiones por referencias
             </p>
           </div>
           <button onClick={() => setShowModal(true)} className="btn btn-primary">
@@ -184,6 +252,38 @@ export default function ComisionesMedicos() {
           </div>
         </div>
 
+        {/* Filtros */}
+        <div className="filtros-section">
+          <div className="filtros-grid">
+            <div className="filtro-item">
+              <label>Estado:</label>
+              <select 
+                className="input-small"
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value)}
+              >
+                <option value="todas">Todas</option>
+                <option value="pendiente">Pendientes</option>
+                <option value="pagado">Pagadas</option>
+              </select>
+            </div>
+
+            <div className="filtro-item">
+              <label>Visitadora:</label>
+              <select 
+                className="input-small"
+                value={filtroVisitadora}
+                onChange={(e) => setFiltroVisitadora(e.target.value)}
+              >
+                <option value="todas">Todas</option>
+                {visitadoras.map((v) => (
+                  <option key={v.id} value={v.id}>{v.nombre}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
         {/* Tabla de Comisiones */}
         <div className="table-container">
           {comisiones.length === 0 ? (
@@ -196,11 +296,12 @@ export default function ComisionesMedicos() {
             <table className="comisiones-table">
               <thead>
                 <tr>
-                  <th>Fecha</th>
+                  <th>Fecha Ref.</th>
                   <th>Médico</th>
                   <th>Paciente</th>
                   <th>Estudio</th>
-                  <th>Comisión</th>
+                  <th>Monto</th>
+                  <th>Asignado a</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -217,24 +318,46 @@ export default function ComisionesMedicos() {
                     <td>{comision.estudio_realizado}</td>
                     <td><strong>{formatMonto(comision.monto_comision)}</strong></td>
                     <td>
-                      <span className={`badge badge-${comision.estado}`}>
-                        {comision.estado === 'pagado' ? 'Pagado' : 'Pendiente'}
-                      </span>
-                      {comision.estado === 'pagado' && comision.fecha_pago && (
-                        <div className="fecha-pago">
-                          {new Date(comision.fecha_pago).toLocaleDateString('es-ES')}
-                        </div>
+                      {comision.asignada_a_nombre ? (
+                        <span className="badge badge-asignada">{comision.asignada_a_nombre}</span>
+                      ) : (
+                        <span className="badge badge-pool">Pool General</span>
                       )}
                     </td>
                     <td>
-                      {comision.estado === 'pendiente' && (
-                        <button
-                          onClick={() => marcarPagado(comision.id)}
-                          className="btn btn-small btn-success"
-                        >
-                          Marcar Pagado
-                        </button>
+                      {comision.estado === 'pagado' ? (
+                        <div>
+                          <span className="badge badge-pagado">Pagado</span>
+                          <div className="pago-info">
+                            <small>Por: {comision.pagado_por_nombre}</small>
+                            <small>{new Date(comision.fecha_hora_pago).toLocaleDateString('es-ES')}</small>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="badge badge-pendiente">Pendiente</span>
                       )}
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        {comision.estado === 'pendiente' && !comision.asignada_a_id && (
+                          <button
+                            onClick={() => abrirModalAsignar(comision)}
+                            className="btn btn-small btn-secondary"
+                            title="Asignar a visitadora"
+                          >
+                            <UserPlus size={14} />
+                          </button>
+                        )}
+                        {comision.estado === 'pagado' && comision.firma_recibido_url && (
+                          <button
+                            onClick={() => verFirma(comision.firma_recibido_url)}
+                            className="btn btn-small btn-secondary"
+                            title="Ver firma"
+                          >
+                            <Eye size={14} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -316,19 +439,39 @@ export default function ComisionesMedicos() {
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Monto de Comisión (Q) *</label>
-                <input
-                  type="number"
-                  name="monto_comision"
-                  className="input"
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  value={formData.monto_comision}
-                  onChange={handleChange}
-                  required
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Monto de Comisión (Q) *</label>
+                  <input
+                    type="number"
+                    name="monto_comision"
+                    className="input"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    value={formData.monto_comision}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Asignar a Visitadora (opcional)</label>
+                  <select
+                    name="asignada_a"
+                    className="input"
+                    value={formData.asignada_a}
+                    onChange={handleChange}
+                  >
+                    <option value="">Pool General (cualquiera puede pagar)</option>
+                    {visitadoras.map((v) => (
+                      <option key={v.id} value={v.id}>{v.nombre}</option>
+                    ))}
+                  </select>
+                  <small style={{ color: '#6b7280', fontSize: '12px' }}>
+                    Si no asignas, quedará disponible para todas las visitadoras
+                  </small>
+                </div>
               </div>
 
               <div className="form-group">
@@ -361,6 +504,72 @@ export default function ComisionesMedicos() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Asignar */}
+      {showAsignarModal && comisionParaAsignar && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-small">
+            <div className="modal-header">
+              <h2>Asignar Comisión</h2>
+              <button onClick={() => setShowAsignarModal(false)} className="btn-close">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '24px' }}>
+              <p style={{ marginBottom: '16px', color: '#6b7280' }}>
+                Asignar comisión de <strong>{comisionParaAsignar.medico_nombre}</strong> ({formatMonto(comisionParaAsignar.monto_comision)})
+              </p>
+
+              <div className="form-group">
+                <label>Seleccionar Visitadora</label>
+                <select
+                  className="input"
+                  value={visitadoraSeleccionada}
+                  onChange={(e) => setVisitadoraSeleccionada(e.target.value)}
+                >
+                  <option value="">Seleccionar...</option>
+                  {visitadoras.map((v) => (
+                    <option key={v.id} value={v.id}>{v.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-actions">
+                <button
+                  onClick={() => setShowAsignarModal(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleAsignar}
+                  className="btn btn-primary"
+                >
+                  Asignar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ver Firma */}
+      {showFirmaModal && (
+        <div className="modal-overlay" onClick={() => setShowFirmaModal(false)}>
+          <div className="modal-content modal-firma" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Firma de Recibido</h2>
+              <button onClick={() => setShowFirmaModal(false)} className="btn-close">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="firma-display-large">
+              <img src={firmaUrl} alt="Firma de recibido" />
+            </div>
           </div>
         </div>
       )}

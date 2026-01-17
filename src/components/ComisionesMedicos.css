@@ -2,6 +2,44 @@
   padding: 0;
 }
 
+/* Filtros */
+.filtros-section {
+  padding: 16px 20px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.filtros-grid {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.filtro-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtro-item label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.input-small {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  background-color: white;
+}
+
+.input-small:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
 /* Stats Grid */
 .stats-grid {
   display: grid;
@@ -120,6 +158,55 @@
 .badge-pagado {
   background-color: #d1fae5;
   color: #065f46;
+}
+
+.badge-asignada {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-pool {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+/* Info de pago */
+.pago-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.pago-info small {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* Modal pequeño */
+.modal-small {
+  max-width: 500px;
+}
+
+/* Modal Firma */
+.modal-firma {
+  max-width: 700px;
+}
+
+.firma-display-large {
+  padding: 24px;
+  background-color: #f9fafb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.firma-display-large img {
+  max-width: 100%;
+  max-height: 400px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background-color: white;
 }
 
 /* Formulario */

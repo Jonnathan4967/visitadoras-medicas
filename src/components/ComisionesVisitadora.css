@@ -1,0 +1,350 @@
+.comisiones-visitadora {
+  padding: 0;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-asignadas .stat-icon {
+  background-color: #fef3c7;
+  color: #f59e0b;
+}
+
+.stat-pool .stat-icon {
+  background-color: #dbeafe;
+  color: #3b82f6;
+}
+
+.stat-pagadas .stat-icon {
+  background-color: #d1fae5;
+  color: #10b981;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0 0 4px 0;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.stat-count {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 2px 0 0 0;
+}
+
+/* Tabs */
+.tabs-comisiones {
+  display: flex;
+  gap: 4px;
+  padding: 16px 20px 0;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tab-comision {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-comision:hover {
+  color: #1f2937;
+  background-color: #f9fafb;
+}
+
+.tab-comision.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+}
+
+.tab-content-comisiones {
+  padding: 20px;
+  min-height: 300px;
+}
+
+/* Lista de Comisiones */
+.comisiones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comision-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.comision-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #3b82f6;
+}
+
+.comision-info h4 {
+  font-size: 15px;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.comision-info .subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0;
+}
+
+.comision-detalles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.comision-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.comision-actions .monto {
+  font-size: 20px;
+  font-weight: 700;
+  color: #10b981;
+}
+
+/* Modal de Pago */
+.modal-pago {
+  max-width: 600px;
+}
+
+.pago-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.resumen-pago {
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resumen-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.resumen-item:last-child {
+  border-bottom: none;
+}
+
+.resumen-item .label {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.resumen-item .value {
+  font-size: 14px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.resumen-item.monto-destacado {
+  background-color: #d1fae5;
+  margin: 8px -16px 0;
+  padding: 12px 16px;
+  border-radius: 6px;
+}
+
+.resumen-item.monto-destacado .label {
+  color: #065f46;
+  font-weight: 600;
+}
+
+.resumen-item.monto-destacado .value {
+  font-size: 24px;
+  color: #065f46;
+  font-weight: 700;
+}
+
+/* Firma Section */
+.firma-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.firma-section label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.signature-container {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.signature-canvas {
+  width: 100%;
+  height: 200px;
+  cursor: crosshair;
+}
+
+/* Modal Firma */
+.modal-firma {
+  max-width: 700px;
+}
+
+.firma-display-large {
+  padding: 24px;
+  background-color: #f9fafb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.firma-display-large img {
+  max-width: 100%;
+  max-height: 400px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background-color: white;
+}
+
+/* Tabla */
+.comisiones-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.comisiones-table thead {
+  background-color: #f9fafb;
+}
+
+.comisiones-table th {
+  padding: 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.comisiones-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 13px;
+  color: #374151;
+}
+
+.comisiones-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .comision-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .comision-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tabs-comisiones {
+    overflow-x: auto;
+  }
+
+  .tab-comision {
+    white-space: nowrap;
+  }
+
+  .pago-content {
+    padding: 16px;
+  }
+
+  .signature-canvas {
+    height: 150px;
+  }
+}
