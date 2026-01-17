@@ -27,6 +27,7 @@ export default function ExportarReportes({ tipo = 'visitadora' }) {
       .from('profiles')
       .select('id, nombre, email')
       .eq('role', 'visitadora')
+      .eq('activo', true) // Solo visitadoras activas
       .order('nombre')
     
     if (data) setVisitadoras(data)

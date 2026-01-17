@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { LogOut, MapPin, Calendar, TrendingUp, Plus, FileText, DollarSign, Download } from 'lucide-react'
+import { LogOut, MapPin, Calendar, TrendingUp, Plus, FileText, DollarSign, Download, Stethoscope } from 'lucide-react'
 import RegistrarVisita from './RegistrarVisita'
 import ListaVisitas from './ListaVisitas'
 import ComisionesVisitadora from './ComisionesVisitadora'
 import ExportarReportes from './ExportarReportes'
+import MedicosVisitadora from './MedicosVisitadora'
 import BotonCreditos from './BotonCreditos'
 import './Dashboard.css'
 
@@ -66,108 +67,110 @@ export default function VisitadoraDashboard() {
 
   const handleVisitaRegistrada = () => {
     setShowRegistrarVisita(false)
-    loadStats() // Recargar estadísticas
-    // Trigger para recargar lista de visitas
+    loadStats()
     window.dispatchEvent(new Event('visitaRegistrada'))
   }
 
   return (
-    <div className="dashboard-container">
-      <nav className="dashboard-nav">
-        <h2>Panel de Visitadora</h2>
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <div>
+          <h1>Panel de Visitadora</h1>
+          <p>Sistema de Gestión de Visitadoras Médicas</p>
+        </div>
         <button onClick={handleLogout} className="btn btn-secondary">
-          <LogOut size={16} />
+          <LogOut size={18} />
           Cerrar Sesión
         </button>
-      </nav>
+      </div>
 
       <div className="dashboard-content">
-        <div className="stats-grid">
-          <div className="stat-card card">
-            <div className="stat-icon" style={{ backgroundColor: '#dbeafe' }}>
-              <Calendar size={24} color="#3b82f6" />
+        {/* Stats Cards */}
+        <div className="stats-grid-visitadora">
+          <div className="stat-card-visitadora">
+            <div className="stat-icon-visitadora" style={{ backgroundColor: '#dbeafe', color: '#3b82f6' }}>
+              <Calendar size={28} />
             </div>
-            <div className="stat-info">
+            <div className="stat-content">
               <p className="stat-label">Visitas Hoy</p>
-              <h3 className="stat-value">{stats.visitasHoy}</h3>
+              <h3 className="stat-number">{stats.visitasHoy}</h3>
             </div>
           </div>
 
-          <div className="stat-card card">
-            <div className="stat-icon" style={{ backgroundColor: '#dcfce7' }}>
-              <TrendingUp size={24} color="#10b981" />
+          <div className="stat-card-visitadora">
+            <div className="stat-icon-visitadora" style={{ backgroundColor: '#dcfce7', color: '#10b981' }}>
+              <TrendingUp size={28} />
             </div>
-            <div className="stat-info">
+            <div className="stat-content">
               <p className="stat-label">Total Visitas</p>
-              <h3 className="stat-value">{stats.totalVisitas}</h3>
+              <h3 className="stat-number">{stats.totalVisitas}</h3>
             </div>
           </div>
 
-          <div className="stat-card card">
-            <div className="stat-icon" style={{ backgroundColor: '#fef3c7' }}>
-              <MapPin size={24} color="#f59e0b" />
+          <div className="stat-card-visitadora">
+            <div className="stat-icon-visitadora" style={{ backgroundColor: '#fef3c7', color: '#f59e0b' }}>
+              <MapPin size={28} />
             </div>
-            <div className="stat-info">
+            <div className="stat-content">
               <p className="stat-label">Zona Asignada</p>
-              <h3 className="stat-value">{stats.zona}</h3>
+              <h3 className="stat-zona">{stats.zona}</h3>
             </div>
           </div>
         </div>
 
-        <div className="main-sections">
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <h3>Bienvenida, {profile?.nombre || 'Visitadora'}</h3>
-                <p style={{ marginTop: '4px', color: '#6b7280', fontSize: '14px' }}>
-                  Registra tus visitas y mantén tu historial actualizado
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowRegistrarVisita(true)}
-                className="btn btn-primary"
-              >
-                <Plus size={20} />
-                Registrar Visita
-              </button>
-            </div>
+        {/* Botón Registrar Visita */}
+        <div style={{ marginTop: '24px', marginBottom: '24px' }}>
+          <button 
+            onClick={() => setShowRegistrarVisita(true)}
+            className="btn btn-primary btn-large"
+          >
+            <Plus size={20} />
+            Registrar Visita
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="tabs-container">
+          <div className="tabs">
+            <button
+              className={`tab ${activeTab === 'visitas' ? 'active' : ''}`}
+              onClick={() => setActiveTab('visitas')}
+            >
+              <FileText size={18} />
+              Mis Visitas
+            </button>
+            <button
+              className={`tab ${activeTab === 'medicos' ? 'active' : ''}`}
+              onClick={() => setActiveTab('medicos')}
+            >
+              <Stethoscope size={18} />
+              Médicos
+            </button>
+            <button
+              className={`tab ${activeTab === 'comisiones' ? 'active' : ''}`}
+              onClick={() => setActiveTab('comisiones')}
+            >
+              <DollarSign size={18} />
+              Comisiones
+            </button>
+            <button
+              className={`tab ${activeTab === 'reportes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('reportes')}
+            >
+              <Download size={18} />
+              Reportes
+            </button>
           </div>
 
-          {/* Tabs */}
-          <div className="tabs-container">
-            <div className="tabs">
-              <button
-                className={`tab ${activeTab === 'visitas' ? 'active' : ''}`}
-                onClick={() => setActiveTab('visitas')}
-              >
-                <FileText size={18} />
-                Mis Visitas
-              </button>
-              <button
-                className={`tab ${activeTab === 'comisiones' ? 'active' : ''}`}
-                onClick={() => setActiveTab('comisiones')}
-              >
-                <DollarSign size={18} />
-                Comisiones
-              </button>
-              <button
-                className={`tab ${activeTab === 'reportes' ? 'active' : ''}`}
-                onClick={() => setActiveTab('reportes')}
-              >
-                <Download size={18} />
-                Reportes
-              </button>
-            </div>
-
-            <div className="tab-content">
-              {activeTab === 'visitas' && <ListaVisitas />}
-              {activeTab === 'comisiones' && <ComisionesVisitadora />}
-              {activeTab === 'reportes' && (
-                <div className="card">
-                  <ExportarReportes tipo="visitadora" />
-                </div>
-              )}
-            </div>
+          <div className="tab-content">
+            {activeTab === 'visitas' && <ListaVisitas />}
+            {activeTab === 'medicos' && <MedicosVisitadora />}
+            {activeTab === 'comisiones' && <ComisionesVisitadora />}
+            {activeTab === 'reportes' && (
+              <div className="card">
+                <ExportarReportes tipo="visitadora" />
+              </div>
+            )}
           </div>
         </div>
       </div>

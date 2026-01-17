@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { Upload, Plus, Search, Edit2, Trash2, FileSpreadsheet, X, Save } from 'lucide-react'
+import { Upload, Plus, Search, Edit2, Trash2, Stethoscope, MapPin, Phone, Building, X, Save } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import './GestionMedicos.css'
 
 export default function GestionMedicos() {
   const [medicos, setMedicos] = useState([])
+  const [medicosFiltrados, setMedicosFiltrados] = useState([])
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -29,9 +30,13 @@ export default function GestionMedicos() {
     loadMedicos()
   }, [])
 
+  useEffect(() => {
+    filtrarMedicos()
+  }, [busqueda, medicos])
+
   const loadMedicos = async () => {
     setLoading(true)
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('medicos')
       .select('*')
       .eq('activo', true)
@@ -39,23 +44,25 @@ export default function GestionMedicos() {
 
     if (data) {
       setMedicos(data)
+      setMedicosFiltrados(data)
     }
     setLoading(false)
   }
 
-  const handleBusqueda = async (termino) => {
-    setBusqueda(termino)
-    if (termino.length < 2) {
-      loadMedicos()
+  const filtrarMedicos = () => {
+    if (!busqueda.trim()) {
+      setMedicosFiltrados(medicos)
       return
     }
 
-    const { data } = await supabase
-      .rpc('buscar_medicos', { termino })
-
-    if (data) {
-      setMedicos(data)
-    }
+    const termino = busqueda.toLowerCase()
+    const filtrados = medicos.filter(m =>
+      m.nombre?.toLowerCase().includes(termino) ||
+      m.clinica?.toLowerCase().includes(termino) ||
+      m.municipio?.toLowerCase().includes(termino) ||
+      m.especialidad?.toLowerCase().includes(termino)
+    )
+    setMedicosFiltrados(filtrados)
   }
 
   const handleChange = (e) => {
@@ -71,20 +78,20 @@ export default function GestionMedicos() {
 
     try {
       if (editando) {
-        // Actualizar
         const { error } = await supabase
           .from('medicos')
           .update(formData)
           .eq('id', editando)
 
         if (error) throw error
+        alert('✅ Médico actualizado')
       } else {
-        // Crear nuevo
         const { error } = await supabase
           .from('medicos')
-          .insert([formData])
+          .insert([{ ...formData, activo: true }])
 
         if (error) throw error
+        alert('✅ Médico agregado')
       }
 
       setShowModal(false)
@@ -112,16 +119,61 @@ export default function GestionMedicos() {
     setShowModal(true)
   }
 
-  const handleEliminar = async (id) => {
-    if (!confirm('¿Estás seguro de eliminar este médico?')) return
+  const handleEliminar = async (id, nombre) => {
+    if (!confirm(`¿Eliminar a ${nombre}?`)) return
 
-    const { error } = await supabase
-      .from('medicos')
-      .update({ activo: false })
-      .eq('id', id)
+    try {
+      const { error } = await supabase
+        .from('medicos')
+        .update({ activo: false })
+        .eq('id', id)
 
-    if (!error) {
+      if (error) throw error
+      alert('✅ Médico eliminado')
       loadMedicos()
+    } catch (error) {
+      alert('Error: ' + error.message)
+    }
+  }
+
+  const handleImportExcel = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    setImportando(true)
+    try {
+      const data = await file.arrayBuffer()
+      const workbook = XLSX.read(data)
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+      const jsonData = XLSX.utils.sheet_to_json(worksheet)
+
+      const medicosToInsert = jsonData
+        .filter(row => row['NOMBRE DEL MEDICO/ENCARGADO'])
+        .map(row => ({
+          nombre: row['NOMBRE DEL MEDICO/ENCARGADO'] || '',
+          clinica: row['CLINICA/FARMACIA/C.S.'] || '',
+          especialidad: row['ESPECIALIDAD'] || '',
+          telefono: row['NUMERO DE TELEFONO 2'] || '',
+          municipio: row['MUNICIPIO'] || '',
+          direccion: row['DIRECCIÓN EXACTA'] || '',
+          referencia: row['REFERENCIA'] || '',
+          especial: row['ESPECIAL'] || '',
+          activo: true
+        }))
+
+      const { error } = await supabase
+        .from('medicos')
+        .insert(medicosToInsert)
+
+      if (error) throw error
+
+      alert(`✅ ${medicosToInsert.length} médicos importados`)
+      setShowImportModal(false)
+      loadMedicos()
+    } catch (error) {
+      alert('Error: ' + error.message)
+    } finally {
+      setImportando(false)
     }
   }
 
@@ -139,53 +191,11 @@ export default function GestionMedicos() {
     setEditando(null)
   }
 
-  const handleImportarExcel = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    setImportando(true)
-
-    try {
-      const data = await file.arrayBuffer()
-      const workbook = XLSX.read(data)
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-      const jsonData = XLSX.utils.sheet_to_json(worksheet)
-
-      // Mapear columnas del Excel
-      const medicosData = jsonData.map(row => ({
-        nombre: row['NOMBRE DEL MEDICO/ENCARGADO  '] || row['NOMBRE DEL MEDICO/ENCARGADO'] || '',
-        clinica: row['CLINICA / FARMACIA / C.S.'] || '',
-        especialidad: row['ESPECIALIDAD '] || row['ESPECIALIDAD'] || '',
-        telefono: row['NUMERO DE TELEFONO 2'] || '',
-        municipio: row['MUNICIPIO'] || '',
-        direccion: row['DIRECCIÓN EXACTA '] || row['DIRECCIÓN EXACTA'] || '',
-        referencia: row['REFERENCIA '] || row['REFERENCIA'] || '',
-        especial: row['ESPECIAL '] || row['ESPECIAL'] || '',
-        activo: true
-      })).filter(m => m.nombre && m.nombre.trim() !== '')
-
-      // Insertar en Supabase
-      const { error } = await supabase
-        .from('medicos')
-        .insert(medicosData)
-
-      if (error) throw error
-
-      alert(`✅ ${medicosData.length} médicos importados exitosamente`)
-      setShowImportModal(false)
-      loadMedicos()
-    } catch (error) {
-      alert('Error al importar: ' + error.message)
-    } finally {
-      setImportando(false)
-    }
-  }
-
   if (loading) {
     return (
       <div className="card">
         <div style={{ textAlign: 'center', padding: '40px' }}>
-          <div className="spinner" style={{ margin: '0 auto' }}></div>
+          <p>Cargando médicos...</p>
         </div>
       </div>
     )
@@ -196,26 +206,17 @@ export default function GestionMedicos() {
       <div className="card">
         <div className="card-header">
           <div>
-            <h3>Base de Datos de Médicos</h3>
+            <h3>Gestión de Médicos</h3>
             <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-              {medicos.length} médicos registrados
+              {medicosFiltrados.length} médicos registrados
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button 
-              onClick={() => setShowImportModal(true)}
-              className="btn btn-secondary"
-            >
+          <div className="header-actions">
+            <button onClick={() => setShowImportModal(true)} className="btn btn-secondary">
               <Upload size={18} />
               Importar Excel
             </button>
-            <button 
-              onClick={() => {
-                resetForm()
-                setShowModal(true)
-              }}
-              className="btn btn-primary"
-            >
+            <button onClick={() => { resetForm(); setShowModal(true); }} className="btn btn-primary">
               <Plus size={18} />
               Agregar Médico
             </button>
@@ -223,70 +224,109 @@ export default function GestionMedicos() {
         </div>
 
         {/* Buscador */}
-        <div className="search-bar">
-          <Search size={20} />
-          <input
-            type="text"
-            placeholder="Buscar por nombre, clínica o municipio..."
-            value={busqueda}
-            onChange={(e) => handleBusqueda(e.target.value)}
-            className="search-input"
-          />
+        <div className="search-section">
+          <div className="search-container">
+            <Search size={20} />
+            <input
+              type="text"
+              className="search-input-medicos"
+              placeholder="Buscar por nombre, clínica, municipio o especialidad..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </div>
         </div>
 
-        {/* Tabla de Médicos */}
-        <div className="table-container">
-          <table className="medicos-table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Clínica/Establecimiento</th>
-                <th>Especialidad</th>
-                <th>Teléfono</th>
-                <th>Municipio</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {medicos.map((medico) => (
-                <tr key={medico.id}>
-                  <td><strong>{medico.nombre}</strong></td>
-                  <td>{medico.clinica || '-'}</td>
-                  <td>{medico.especialidad || '-'}</td>
-                  <td>{medico.telefono || '-'}</td>
-                  <td>{medico.municipio || '-'}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        onClick={() => handleEditar(medico)}
-                        className="btn-icon"
-                        title="Editar"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleEliminar(medico.id)}
-                        className="btn-icon btn-danger"
-                        title="Eliminar"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+        {/* Grid de Médicos */}
+        <div className="medicos-grid">
+          {medicosFiltrados.length === 0 ? (
+            <div className="empty-state">
+              <Stethoscope size={48} color="#9ca3af" />
+              <h3>No se encontraron médicos</h3>
+              <p>Intenta ajustar tu búsqueda o agrega un nuevo médico</p>
+            </div>
+          ) : (
+            medicosFiltrados.map((medico) => (
+              <div key={medico.id} className="medico-card-admin">
+                <div className="medico-header">
+                  <div className="medico-avatar">
+                    <Stethoscope size={24} />
+                  </div>
+                  <div className="medico-info-principal">
+                    <h4>{medico.nombre}</h4>
+                    {medico.especialidad && (
+                      <span className="especialidad-badge">{medico.especialidad}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="medico-details">
+                  {medico.clinica && (
+                    <div className="detail-item">
+                      <Building size={16} />
+                      <span>{medico.clinica}</span>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+
+                  {medico.municipio && (
+                    <div className="detail-item">
+                      <MapPin size={16} />
+                      <span>{medico.municipio}</span>
+                    </div>
+                  )}
+
+                  {medico.telefono && (
+                    <div className="detail-item">
+                      <Phone size={16} />
+                      <a href={`tel:${medico.telefono}`}>{medico.telefono}</a>
+                    </div>
+                  )}
+
+                  {medico.direccion && (
+                    <div className="direccion-completa">
+                      <p className="direccion-label">Dirección:</p>
+                      <p className="direccion-text">{medico.direccion}</p>
+                    </div>
+                  )}
+
+                  {medico.referencia && (
+                    <div className="referencia">
+                      <p className="referencia-label">Referencia:</p>
+                      <p className="referencia-text">{medico.referencia}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Botones de Acción */}
+                <div className="card-actions">
+                  <button
+                    onClick={() => handleEditar(medico)}
+                    className="btn-card btn-edit"
+                  >
+                    <Edit2 size={16} />
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleEliminar(medico.id, medico.nombre)}
+                    className="btn-card btn-delete"
+                  >
+                    <Trash2 size={16} />
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
       {/* Modal Agregar/Editar */}
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content modal-medico">
             <div className="modal-header">
               <h2>{editando ? 'Editar Médico' : 'Agregar Médico'}</h2>
-              <button onClick={() => setShowModal(false)} className="btn-close">
+              <button onClick={() => { setShowModal(false); resetForm(); }} className="btn-close">
                 <X size={20} />
               </button>
             </div>
@@ -294,10 +334,10 @@ export default function GestionMedicos() {
             <form onSubmit={handleSubmit} className="medico-form">
               <div className="form-row">
                 <div className="form-group">
-                  <label>Nombre del Médico/Encargado *</label>
+                  <label>Nombre *</label>
                   <input
-                    name="nombre"
                     type="text"
+                    name="nombre"
                     className="input"
                     value={formData.nombre}
                     onChange={handleChange}
@@ -306,10 +346,10 @@ export default function GestionMedicos() {
                 </div>
 
                 <div className="form-group">
-                  <label>Clínica/Farmacia/C.S.</label>
+                  <label>Clínica/Centro</label>
                   <input
-                    name="clinica"
                     type="text"
+                    name="clinica"
                     className="input"
                     value={formData.clinica}
                     onChange={handleChange}
@@ -321,8 +361,8 @@ export default function GestionMedicos() {
                 <div className="form-group">
                   <label>Especialidad</label>
                   <input
-                    name="especialidad"
                     type="text"
+                    name="especialidad"
                     className="input"
                     value={formData.especialidad}
                     onChange={handleChange}
@@ -332,8 +372,8 @@ export default function GestionMedicos() {
                 <div className="form-group">
                   <label>Teléfono</label>
                   <input
-                    name="telefono"
                     type="text"
+                    name="telefono"
                     className="input"
                     value={formData.telefono}
                     onChange={handleChange}
@@ -341,56 +381,43 @@ export default function GestionMedicos() {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Municipio</label>
-                  <input
-                    name="municipio"
-                    type="text"
-                    className="input"
-                    value={formData.municipio}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Dirección Exacta</label>
-                  <input
-                    name="direccion"
-                    type="text"
-                    className="input"
-                    value={formData.direccion}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
               <div className="form-group">
-                <label>Referencia</label>
+                <label>Municipio</label>
                 <input
-                  name="referencia"
                   type="text"
+                  name="municipio"
                   className="input"
-                  value={formData.referencia}
+                  value={formData.municipio}
                   onChange={handleChange}
                 />
               </div>
 
               <div className="form-group">
-                <label>Especial</label>
+                <label>Dirección</label>
                 <textarea
-                  name="especial"
+                  name="direccion"
                   className="input"
-                  value={formData.especial}
-                  onChange={handleChange}
                   rows="2"
+                  value={formData.direccion}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Referencia</label>
+                <textarea
+                  name="referencia"
+                  className="input"
+                  rows="2"
+                  value={formData.referencia}
+                  onChange={handleChange}
                 />
               </div>
 
               <div className="form-actions">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => { setShowModal(false); resetForm(); }}
                   className="btn btn-secondary"
                 >
                   Cancelar
@@ -412,44 +439,27 @@ export default function GestionMedicos() {
       {/* Modal Importar */}
       {showImportModal && (
         <div className="modal-overlay">
-          <div className="modal-content modal-small">
+          <div className="modal-content">
             <div className="modal-header">
-              <h2>Importar Base de Datos</h2>
+              <h2>Importar Médicos desde Excel</h2>
               <button onClick={() => setShowImportModal(false)} className="btn-close">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="import-content">
-              <div className="import-icon">
-                <FileSpreadsheet size={48} color="#10b981" />
-              </div>
-              <h3>Selecciona tu archivo Excel</h3>
-              <p>El archivo debe contener las siguientes columnas:</p>
-              <ul className="columns-list">
-                <li>NOMBRE DEL MEDICO/ENCARGADO</li>
-                <li>CLINICA / FARMACIA / C.S.</li>
-                <li>ESPECIALIDAD</li>
-                <li>NUMERO DE TELEFONO 2</li>
-                <li>MUNICIPIO</li>
-                <li>DIRECCIÓN EXACTA</li>
-                <li>REFERENCIA</li>
-                <li>ESPECIAL</li>
-              </ul>
+            <div style={{ padding: '24px' }}>
+              <p style={{ marginBottom: '16px', color: '#6b7280' }}>
+                Selecciona un archivo Excel con los médicos a importar.
+              </p>
 
               <input
                 type="file"
                 accept=".xlsx,.xls"
-                onChange={handleImportarExcel}
-                style={{ display: 'none' }}
-                id="file-input"
-                disabled={importando}
+                onChange={handleImportExcel}
+                style={{ marginBottom: '16px' }}
               />
-              
-              <label htmlFor="file-input" className="btn btn-primary btn-upload">
-                <Upload size={18} />
-                {importando ? 'Importando...' : 'Seleccionar Archivo Excel'}
-              </label>
+
+              {importando && <p>Importando...</p>}
             </div>
           </div>
         </div>

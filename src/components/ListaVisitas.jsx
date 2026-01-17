@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { ChevronDown, ChevronUp, MapPin, Calendar, FileText } from 'lucide-react'
+import { ChevronDown, ChevronUp, MapPin, Calendar, FileText, Search, X } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import './ListaVisitas.css'
@@ -13,13 +13,20 @@ export default function ListaVisitas() {
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState(null)
   
-  // Nuevo: Toggle de vista
-  const [vistaHistorial, setVistaHistorial] = useState(false) // false = Solo hoy, true = Todas
+  // Toggle de vista
+  const [vistaHistorial, setVistaHistorial] = useState(false)
+  
+  // Filtros para historial
+  const [filtros, setFiltros] = useState({
+    fechaInicio: '',
+    fechaFin: '',
+    medico: '',
+    municipio: ''
+  })
 
   useEffect(() => {
     loadVisitas()
     
-    // Escuchar evento de nueva visita registrada
     const handleVisitaRegistrada = () => {
       loadVisitas()
     }
@@ -29,7 +36,11 @@ export default function ListaVisitas() {
     return () => {
       window.removeEventListener('visitaRegistrada', handleVisitaRegistrada)
     }
-  }, [user, vistaHistorial]) // Recargar cuando cambie la vista
+  }, [user, vistaHistorial])
+
+  useEffect(() => {
+    aplicarFiltros()
+  }, [visitas, filtros])
 
   const loadVisitas = async () => {
     setLoading(true)
@@ -40,7 +51,6 @@ export default function ListaVisitas() {
       .eq('visitadora_id', user.id)
       .order('created_at', { ascending: false })
     
-    // Si NO está en vista historial, solo cargar visitas de hoy
     if (!vistaHistorial) {
       const hoy = new Date().toISOString().split('T')[0]
       query = query
@@ -57,134 +67,215 @@ export default function ListaVisitas() {
     setLoading(false)
   }
 
-  const toggleVista = () => {
-    setVistaHistorial(!vistaHistorial)
+  const aplicarFiltros = () => {
+    let resultado = [...visitas]
+
+    // Filtro por fecha inicio
+    if (filtros.fechaInicio) {
+      resultado = resultado.filter(v => 
+        new Date(v.created_at).toISOString().split('T')[0] >= filtros.fechaInicio
+      )
+    }
+
+    // Filtro por fecha fin
+    if (filtros.fechaFin) {
+      resultado = resultado.filter(v => 
+        new Date(v.created_at).toISOString().split('T')[0] <= filtros.fechaFin
+      )
+    }
+
+    // Filtro por nombre del médico
+    if (filtros.medico) {
+      resultado = resultado.filter(v => 
+        v.nombre_cliente?.toLowerCase().includes(filtros.medico.toLowerCase())
+      )
+    }
+
+    // Filtro por municipio
+    if (filtros.municipio) {
+      resultado = resultado.filter(v => 
+        v.direccion?.toLowerCase().includes(filtros.municipio.toLowerCase())
+      )
+    }
+
+    setVisitasFiltradas(resultado)
   }
 
-  const toggleExpand = (id) => {
+  const handleFiltroChange = (e) => {
+    setFiltros({
+      ...filtros,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const limpiarFiltros = () => {
+    setFiltros({
+      fechaInicio: '',
+      fechaFin: '',
+      medico: '',
+      municipio: ''
+    })
+  }
+
+  const toggleVista = () => {
+    setVistaHistorial(!vistaHistorial)
+    limpiarFiltros()
+  }
+
+  const toggleExpanded = (id) => {
     setExpandedId(expandedId === id ? null : id)
   }
 
   if (loading) {
-    return (
-      <div className="card">
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          <p>Cargando visitas...</p>
-        </div>
-      </div>
-    )
+    return <div className="loading">Cargando visitas...</div>
   }
 
   return (
     <div className="lista-visitas">
-      <div className="card">
-        <div className="card-header">
-          <div>
-            <h3>Mis Visitas</h3>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
-              {vistaHistorial 
-                ? `${visitasFiltradas.length} visitas en total`
-                : `${visitasFiltradas.length} visitas hoy`
-              }
-            </p>
+      {/* Toggle Vista */}
+      <div className="vista-toggle-section">
+        <div className="toggle-buttons">
+          <button
+            className={`toggle-btn ${!vistaHistorial ? 'active' : ''}`}
+            onClick={() => !vistaHistorial ? null : toggleVista()}
+          >
+            <Calendar size={16} />
+            Solo Hoy
+          </button>
+          <button
+            className={`toggle-btn ${vistaHistorial ? 'active' : ''}`}
+            onClick={() => vistaHistorial ? null : toggleVista()}
+          >
+            <FileText size={16} />
+            Historial Completo
+          </button>
+        </div>
+      </div>
+
+      {/* Filtros (solo en historial) */}
+      {vistaHistorial && (
+        <div className="filtros-avanzados">
+          <h4>Filtrar visitas</h4>
+          <div className="filtros-grid">
+            <div className="filtro-item">
+              <label>Desde:</label>
+              <input
+                type="date"
+                name="fechaInicio"
+                className="input-small"
+                value={filtros.fechaInicio}
+                onChange={handleFiltroChange}
+              />
+            </div>
+
+            <div className="filtro-item">
+              <label>Hasta:</label>
+              <input
+                type="date"
+                name="fechaFin"
+                className="input-small"
+                value={filtros.fechaFin}
+                onChange={handleFiltroChange}
+              />
+            </div>
+
+            <div className="filtro-item">
+              <label>Médico:</label>
+              <input
+                type="text"
+                name="medico"
+                className="input-small"
+                placeholder="Nombre del médico"
+                value={filtros.medico}
+                onChange={handleFiltroChange}
+              />
+            </div>
+
+            <div className="filtro-item">
+              <label>Municipio:</label>
+              <input
+                type="text"
+                name="municipio"
+                className="input-small"
+                placeholder="Municipio"
+                value={filtros.municipio}
+                onChange={handleFiltroChange}
+              />
+            </div>
+
+            {(filtros.fechaInicio || filtros.fechaFin || filtros.medico || filtros.municipio) && (
+              <button onClick={limpiarFiltros} className="btn btn-secondary btn-small">
+                <X size={14} />
+                Limpiar
+              </button>
+            )}
           </div>
         </div>
+      )}
 
-        {/* Toggle Vista */}
-        <div className="vista-toggle-section">
-          <div className="toggle-buttons">
-            <button
-              className={`toggle-btn ${!vistaHistorial ? 'active' : ''}`}
-              onClick={() => !vistaHistorial || toggleVista()}
-            >
-              <Calendar size={16} />
-              Solo Hoy
-            </button>
-            <button
-              className={`toggle-btn ${vistaHistorial ? 'active' : ''}`}
-              onClick={() => vistaHistorial || toggleVista()}
-            >
-              <FileText size={16} />
-              Historial Completo
-            </button>
-          </div>
-        </div>
-
-        {/* Filtros (solo en vista historial) */}
-        {/* FILTROS REMOVIDOS - Vista más limpia */}
-
-        {/* Buscador simple (vista hoy) */}
-        {/* BUSCADOR REMOVIDO - Vista más limpia */}
-
-        {/* Lista de Visitas */}
-        <div className="visitas-container">
-          {visitasFiltradas.length === 0 ? (
-            <div className="empty-state">
-              <Calendar size={48} color="#9ca3af" />
+      {/* Lista de Visitas */}
+      <div className="visitas-container">
+        {visitasFiltradas.length === 0 ? (
+          <div className="empty-panel">
+            <div className="empty-icon">
+              <FileText size={48} />
+            </div>
+            <div className="empty-content">
               <h3>
                 {vistaHistorial 
-                  ? 'No tienes visitas registradas'
+                  ? 'No se encontraron visitas'
                   : 'No has registrado visitas hoy'
                 }
               </h3>
               <p>
                 {vistaHistorial
-                  ? 'El historial completo de visitas aparecerá aquí'
+                  ? 'Intenta ajustar los filtros de búsqueda'
                   : 'Las visitas que registres aparecerán aquí'
                 }
               </p>
             </div>
-          ) : (
-            <div className="visitas-list">
-              {visitasFiltradas.map((visita) => (
-                <div key={visita.id} className="visita-card">
-                  <div className="visita-header" onClick={() => toggleExpand(visita.id)}>
-                    <div className="visita-info">
-                      <h4>{visita.nombre_cliente}</h4>
-                      <div className="visita-meta">
-                        <span className="meta-item">
-                          <Calendar size={14} />
-                          {new Date(visita.created_at).toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                          })}
-                        </span>
-                        <span className="meta-item">
-                          <Clock size={14} />
-                          {new Date(visita.created_at).toLocaleTimeString('es-ES', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                        <span className="meta-item">
-                          <MapPin size={14} />
-                          {visita.tipo_establecimiento}
-                        </span>
-                      </div>
+          </div>
+        ) : (
+          <div className="visitas-list">
+            {visitasFiltradas.map((visita) => (
+              <div key={visita.id} className="visita-card">
+                <div className="visita-header" onClick={() => toggleExpanded(visita.id)}>
+                  <div className="visita-info">
+                    <h4>{visita.nombre_cliente}</h4>
+                    <div className="visita-meta">
+                      <span className="meta-item">
+                        <Calendar size={14} />
+                        {new Date(visita.created_at).toLocaleDateString('es-GT', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <span className="meta-item">
+                        <MapPin size={14} />
+                        {visita.direccion}
+                      </span>
                     </div>
-                    <button className="expand-btn">
-                      {expandedId === visita.id ? (
-                        <ChevronUp size={20} />
-                      ) : (
-                        <ChevronDown size={20} />
-                      )}
-                    </button>
                   </div>
+                  <button className="expand-btn">
+                    {expandedId === visita.id ? (
+                      <ChevronUp size={20} />
+                    ) : (
+                      <ChevronDown size={20} />
+                    )}
+                  </button>
+                </div>
 
-                  {expandedId === visita.id && (
-                    <div className="visita-detalles">
+                {expandedId === visita.id && (
+                  <div className="visita-detalles">
+                    <div className="detalles-grid">
                       <div className="detalle-section">
-                        <h5>Información</h5>
-                        <div className="detalle-grid">
-                          <div className="detalle-item">
-                            <span className="label">Dirección:</span>
-                            <span className="value">{visita.direccion}</span>
-                          </div>
-                          <div className="detalle-item">
-                            <span className="label">Tipo:</span>
-                            <span className="value">{visita.tipo_establecimiento}</span>
-                          </div>
+                        <h5>Información General</h5>
+                        <div className="detalle-item">
+                          <span className="detalle-label">Tipo de establecimiento:</span>
+                          <span className="detalle-value">{visita.tipo_establecimiento}</span>
                         </div>
                       </div>
 
@@ -204,18 +295,18 @@ export default function ListaVisitas() {
                       {visita.observaciones && (
                         <div className="detalle-section">
                           <h5>Observaciones</h5>
-                          <p className="observaciones">{visita.observaciones}</p>
+                          <p className="observaciones-text">{visita.observaciones}</p>
                         </div>
                       )}
 
                       {visita.latitud && visita.longitud && (
                         <div className="detalle-section">
                           <h5>Ubicación GPS</h5>
-                          <div className="map-container">
+                          <div className="mapa-container">
                             <MapContainer
                               center={[visita.latitud, visita.longitud]}
                               zoom={15}
-                              style={{ height: '200px', width: '100%' }}
+                              style={{ height: '200px', width: '100%', borderRadius: '8px' }}
                             >
                               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                               <Marker position={[visita.latitud, visita.longitud]}>
@@ -229,27 +320,19 @@ export default function ListaVisitas() {
                       {visita.firma_url && (
                         <div className="detalle-section">
                           <h5>Firma del Cliente</h5>
-                          <div className="firma-display">
-                            <img src={visita.firma_url} alt="Firma" className="firma-imagen" />
+                          <div className="firma-container">
+                            <img src={visita.firma_url} alt="Firma" className="firma-img" />
                           </div>
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
 }
-
-// Agregar estilos para Clock
-const Clock = ({ size }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="10"/>
-    <polyline points="12 6 12 12 16 14"/>
-  </svg>
-)
