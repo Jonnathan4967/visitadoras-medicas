@@ -746,3 +746,24 @@
     padding: 40px 20px;
   }
 }
+.empty-preview {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.empty-preview svg {
+  margin: 0 auto 16px;
+}
+
+.empty-preview h4 {
+  font-size: 16px;
+  color: #374151;
+  margin: 16px 0 8px 0;
+}
+
+.empty-preview p {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 0;
+}

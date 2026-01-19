@@ -1,100 +1,100 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 import { 
   X, User, MapPin, Phone, Mail, Calendar, TrendingUp, 
   DollarSign, FileText, ChevronDown, ChevronUp, Save, Edit2, Search
-} from 'lucide-react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import './DetalleVisitadora.css'
+} from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import './DetalleVisitadora.css';
 
 export default function DetalleVisitadora({ visitadoraId, onClose }) {
-  const [visitadora, setVisitadora] = useState(null)
-  const [visitas, setVisitas] = useState([])
-  const [comisiones, setComisiones] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [expandedVisitaId, setExpandedVisitaId] = useState(null)
-  const [editando, setEditando] = useState(false)
-  const [guardando, setGuardando] = useState(false)
-  const [mostrarVisitas, setMostrarVisitas] = useState(false) // Control de visibilidad
-  const [buscandoVisitas, setBuscandoVisitas] = useState(false)
+  const [visitadora, setVisitadora] = useState(null);
+  const [visitas, setVisitas] = useState([]);
+  const [comisiones, setComisiones] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedVisitaId, setExpandedVisitaId] = useState(null);
+  const [editando, setEditando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [mostrarVisitas, setMostrarVisitas] = useState(false);
+  const [buscandoVisitas, setBuscandoVisitas] = useState(false);
   
   // Estados para filtros
-  const [filtroVisitas, setFiltroVisitas] = useState('')
-  const [fechaSeleccionada, setFechaSeleccionada] = useState('')
-  const [filtroComisiones, setFiltroComisiones] = useState('')
+  const [filtroVisitas, setFiltroVisitas] = useState('');
+  const [fechaSeleccionada, setFechaSeleccionada] = useState('');
+  const [filtroComisiones, setFiltroComisiones] = useState('');
   
   const [formData, setFormData] = useState({
     nombre: '',
     zona: '',
     telefono: ''
-  })
+  });
 
   useEffect(() => {
-    loadData()
-  }, [visitadoraId])
+    loadData();
+  }, [visitadoraId]);
 
   const loadData = async () => {
-    setLoading(true)
+    setLoading(true);
 
     // Cargar perfil de visitadora
     const { data: perfilData } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', visitadoraId)
-      .single()
+      .single();
 
     if (perfilData) {
-      setVisitadora(perfilData)
+      setVisitadora(perfilData);
       setFormData({
         nombre: perfilData.nombre || '',
         zona: perfilData.zona || '',
         telefono: perfilData.telefono || ''
-      })
+      });
     }
 
-    // Cargar comisiones (estas sí se cargan automáticamente)
+    // Cargar comisiones
     const { data: comisionesData } = await supabase
       .from('comisiones')
       .select('*')
       .eq('visitadora_id', visitadoraId)
       .order('anio', { ascending: false })
-      .order('mes', { ascending: false })
+      .order('mes', { ascending: false });
 
     if (comisionesData) {
-      setComisiones(comisionesData)
+      setComisiones(comisionesData);
     }
 
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
-  // Función para cargar visitas SOLO cuando el usuario lo pida
+  // Función para cargar visitas bajo demanda
   const cargarVisitas = async () => {
-    setBuscandoVisitas(true)
+    setBuscandoVisitas(true);
     
     const { data: visitasData } = await supabase
       .from('visitas')
       .select('*')
       .eq('visitadora_id', visitadoraId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (visitasData) {
-      setVisitas(visitasData)
-      setMostrarVisitas(true)
+      setVisitas(visitasData);
+      setMostrarVisitas(true);
     }
     
-    setBuscandoVisitas(false)
-  }
+    setBuscandoVisitas(false);
+  };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+  };
 
   const handleGuardar = async () => {
-    setGuardando(true)
+    setGuardando(true);
     
     const { error } = await supabase
       .from('profiles')
@@ -103,109 +103,132 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
         zona: formData.zona,
         telefono: formData.telefono
       })
-      .eq('id', visitadoraId)
+      .eq('id', visitadoraId);
 
     if (!error) {
-      setVisitadora({ ...visitadora, ...formData })
-      setEditando(false)
+      setVisitadora({ ...visitadora, ...formData });
+      setEditando(false);
     }
     
-    setGuardando(false)
-  }
+    setGuardando(false);
+  };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    })
-  }
+    });
+  };
 
-  const formatDateOnly = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    })
-  }
+  const formatDateOnly = (fechaString) => {
+    // fechaString viene en formato YYYY-MM-DD desde getDateString()
+    const [year, month, day] = fechaString.split('-');
+    
+    const meses = [
+      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+      'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+    ];
+    
+    const mesNombre = meses[parseInt(month) - 1];
+    
+    return `${day} ${mesNombre} ${year}`;
+  };
+
+  // CORRECCIÓN: Función para convertir timestamp UTC a fecha local de Guatemala
+  const getDateString = (dateString) => {
+    const date = new Date(dateString);
+    const guatemalaOffset = 6 * 60 * 60 * 1000; // UTC-6
+    const guatemalaDate = new Date(date.getTime() - guatemalaOffset);
+    
+    const year = guatemalaDate.getUTCFullYear();
+    const month = String(guatemalaDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(guatemalaDate.getUTCDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  };
 
   const getMesNombre = (mes) => {
     const meses = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-    ]
-    return meses[mes - 1]
-  }
+    ];
+    return meses[mes - 1];
+  };
 
   const formatMonto = (monto) => {
     return new Intl.NumberFormat('es-GT', {
       style: 'currency',
       currency: 'GTQ'
-    }).format(monto)
-  }
+    }).format(monto);
+  };
 
-  // Filtrar visitas según búsqueda Y fecha
+  // Filtrar visitas con corrección de zona horaria
   const visitasFiltradas = visitas.filter(visita => {
-    // Filtro por fecha
     if (fechaSeleccionada) {
-      const visitaFecha = visita.created_at.split('T')[0]
-      if (visitaFecha !== fechaSeleccionada) return false
+      const visitaFecha = getDateString(visita.created_at);
+      if (visitaFecha !== fechaSeleccionada) return false;
     }
 
-    // Filtro por texto de búsqueda
-    if (!filtroVisitas) return true
-    const searchTerm = filtroVisitas.toLowerCase()
+    if (!filtroVisitas) return true;
+    const searchTerm = filtroVisitas.toLowerCase();
     return (
       visita.nombre_cliente?.toLowerCase().includes(searchTerm) ||
       visita.direccion?.toLowerCase().includes(searchTerm) ||
       visita.tipo_establecimiento?.toLowerCase().includes(searchTerm) ||
       visita.observaciones?.toLowerCase().includes(searchTerm)
-    )
-  })
+    );
+  });
 
-  // Agrupar visitas por fecha
+  // Agrupar visitas por fecha (corregido)
   const visitasPorDia = visitasFiltradas.reduce((grupos, visita) => {
-    const fecha = visita.created_at.split('T')[0]
+    const fecha = getDateString(visita.created_at);
     if (!grupos[fecha]) {
-      grupos[fecha] = []
+      grupos[fecha] = [];
     }
-    grupos[fecha].push(visita)
-    return grupos
-  }, {})
+    grupos[fecha].push(visita);
+    return grupos;
+  }, {});
 
-  // Ordenar las fechas de más reciente a más antigua
-  const fechasOrdenadas = Object.keys(visitasPorDia).sort((a, b) => b.localeCompare(a))
+  const fechasOrdenadas = Object.keys(visitasPorDia).sort((a, b) => b.localeCompare(a));
 
-  // Filtrar comisiones según búsqueda
+  // Filtrar comisiones
   const comisionesFiltradas = comisiones.filter(comision => {
-    if (!filtroComisiones) return true
-    const searchTerm = filtroComisiones.toLowerCase()
-    const periodo = `${getMesNombre(comision.mes)} ${comision.anio}`.toLowerCase()
-    const estado = comision.estado.toLowerCase()
-    return periodo.includes(searchTerm) || estado.includes(searchTerm)
-  })
+    if (!filtroComisiones) return true;
+    const searchTerm = filtroComisiones.toLowerCase();
+    const periodo = `${getMesNombre(comision.mes)} ${comision.anio}`.toLowerCase();
+    const estado = comision.estado.toLowerCase();
+    return periodo.includes(searchTerm) || estado.includes(searchTerm);
+  });
 
-  // Calcular estadísticas (SIN mostrar "Pendiente")
+  // Calcular estadísticas con corrección de zona horaria
   const stats = {
     totalVisitas: visitas.length,
     visitasHoy: visitas.filter(v => {
-      const hoy = new Date().toISOString().split('T')[0]
-      const visitaFecha = v.created_at.split('T')[0]
-      return visitaFecha === hoy
+      const ahora = new Date();
+      const guatemalaOffset = 6 * 60 * 60 * 1000;
+      const guatemalaAhora = new Date(ahora.getTime() - guatemalaOffset);
+      
+      const year = guatemalaAhora.getUTCFullYear();
+      const month = String(guatemalaAhora.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(guatemalaAhora.getUTCDate()).padStart(2, '0');
+      const hoyString = `${year}-${month}-${day}`;
+      
+      const visitaFecha = getDateString(v.created_at);
+      return visitaFecha === hoyString;
     }).length,
     comisionesPagadas: comisiones
       .filter(c => c.estado === 'pagado')
       .reduce((sum, c) => sum + parseFloat(c.monto_pagado || 0), 0)
-  }
+  };
 
   const limpiarFiltros = () => {
-    setFiltroVisitas('')
-    setFechaSeleccionada('')
-  }
+    setFiltroVisitas('');
+    setFechaSeleccionada('');
+  };
 
   if (loading) {
     return (
@@ -217,7 +240,7 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -367,7 +390,7 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
             </div>
           )}
 
-          {/* Comisiones con Filtro */}
+          {/* Comisiones */}
           <div className="section-card">
             <div className="section-header">
               <h3>
@@ -419,7 +442,7 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
             )}
           </div>
 
-          {/* Visitas Recientes con Filtros */}
+          {/* Visitas */}
           <div className="section-card">
             <div className="section-header">
               <h3>
@@ -446,7 +469,6 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
               </div>
             ) : (
               <>
-                {/* Filtros de búsqueda */}
                 <div className="filtros-container">
                   <div className="filtro-grupo">
                     <label className="filtro-label">Buscar por fecha:</label>
@@ -603,5 +625,5 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
