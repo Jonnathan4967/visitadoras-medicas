@@ -717,3 +717,17 @@
     max-width: 100%;
   }
 }
+/* Botón Ver Detalle */
+.btn-ver-detalle {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  padding: 10px 16px;
+}
+
+.btn-full {
+  width: 100%;
+}

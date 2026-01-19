@@ -540,3 +540,209 @@
     min-width: 100%;
   }
 }
+/* Agregar estos estilos a DetalleVisitadora.css */
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.section-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px 10px 40px !important; /* El !important asegura que se aplique */
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.empty-text {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Contenedor de filtros */
+.filtros-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filtro-grupo {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filtro-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input-date {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.input-date:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Agrupación por día */
+.visitas-por-dia {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dia-grupo {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.dia-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dia-header svg {
+  color: #3b82f6;
+}
+
+.dia-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  flex: 1;
+}
+
+.dia-contador {
+  font-size: 13px;
+  color: #6b7280;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* Ajuste para la lista de visitas dentro del grupo */
+.dia-grupo .visitas-list-detalle {
+  padding: 0;
+}
+
+.dia-grupo .visita-item-detalle {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dia-grupo .visita-item-detalle:last-child {
+  border-bottom: none;
+}
+
+/* Vista Previa Vacía en DetalleVisitadora */
+.empty-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px dashed #e5e7eb;
+  margin: 20px 0;
+}
+
+.empty-preview h4 {
+  margin: 16px 0 8px;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.empty-preview p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Hacer responsive */
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    max-width: 100% !important;
+  }
+
+  .filtros-container {
+    flex-direction: column;
+  }
+
+  .filtro-grupo {
+    min-width: 100%;
+  }
+
+  .empty-preview {
+    padding: 40px 20px;
+  }
+}

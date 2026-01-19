@@ -52,16 +52,38 @@ export default function PagarComisionModal({ comision, onClose, onPagoExitoso })
         .from('firmas')
         .getPublicUrl(fileName)
 
-      // 5. Marcar comisión como pagada
-      const { data, error: updateError } = await supabase
-        .rpc('marcar_comision_mensual_pagada', {
-          p_comision_id: comision.id,
-          p_visitadora_id: user.id,
-          p_firma_url: publicUrl,
-          p_nombre_recibe: nombreRecibe
+      // 5. Actualizar comision_mensual como pagada
+      const { error: updateError } = await supabase
+        .from('comisiones_mensuales')
+        .update({
+          estado: 'pagado',
+          fecha_pago: new Date().toISOString(),
+          nombre_recibe: nombreRecibe,
+          firma_url: publicUrl,
+          visitadora_pagadora_id: user.id
         })
+        .eq('id', comision.id)
 
       if (updateError) throw updateError
+
+      // 6. Registrar en pagos_comisiones
+      const mesActual = new Date().getMonth() + 1
+      const anioActual = new Date().getFullYear()
+
+      const { error: insertError } = await supabase
+        .from('pagos_comisiones')
+        .insert({
+          visitadora_id: user.id,
+          medico_nombre: comision.nombre_medico,
+          monto: parseFloat(comision.total_comision),
+          mes: mesActual,
+          anio: anioActual,
+          fecha_pago: new Date().toISOString(),
+          firma_url: publicUrl,
+          nombre_recibe: nombreRecibe
+        })
+
+      if (insertError) throw insertError
 
       alert(`✅ Comisión pagada: ${comision.nombre_medico} - Q${comision.total_comision}`)
       onPagoExitoso()

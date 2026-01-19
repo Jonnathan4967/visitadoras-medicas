@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { DollarSign, Calendar, CheckCircle, Clock, Download, TrendingUp, Upload, FileSpreadsheet, Trash2, Search } from 'lucide-react'
+import { DollarSign, Calendar, CheckCircle, Clock, Download, TrendingUp, Upload, FileSpreadsheet, Trash2, Search, Eye } from 'lucide-react'
 import ImportarComisiones from './ImportarComisiones'
+import DetallePagoComisionModal from './DetallePagoComisionModal'
 import { descargarPlantillaComisiones } from '../utils/plantillaComisiones'
 import { exportarReporteComisiones } from '../utils/exportarReporteComisiones'
 import './ComisionesMensuales.css'
@@ -11,7 +12,10 @@ export default function ComisionesMensualesAdmin() {
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('todas') // todas, pendientes, pagadas
   const [showImportModal, setShowImportModal] = useState(false)
+  const [showDetalleModal, setShowDetalleModal] = useState(false)
+  const [comisionSeleccionada, setComisionSeleccionada] = useState(null)
   const [busqueda, setBusqueda] = useState('')
+  const [eliminando, setEliminando] = useState(false)
   const [stats, setStats] = useState({
     totalPendiente: 0,
     totalPagado: 0,
@@ -30,14 +34,19 @@ export default function ComisionesMensualesAdmin() {
   const loadComisiones = async () => {
     setLoading(true)
     
+    console.log('📊 Cargando comisiones desde vista...')
+    
     const { data, error } = await supabase
       .from('vista_comisiones_mensuales')
       .select('*')
       .order('estado', { ascending: true })
       .order('total_comision', { ascending: false })
 
-    if (data) {
-      setComisiones(data)
+    if (error) {
+      console.error('❌ Error al cargar comisiones:', error)
+    } else {
+      console.log(`✅ ${data?.length || 0} comisiones cargadas`)
+      setComisiones(data || [])
     }
     
     setLoading(false)
@@ -78,29 +87,136 @@ export default function ComisionesMensualesAdmin() {
   }
 
   const limpiarPendientes = async () => {
-    if (!confirm('¿Eliminar TODAS las comisiones pendientes? Esta acción no se puede deshacer.')) {
+    const pendientes = comisiones.filter(c => c.estado === 'pendiente')
+    
+    if (pendientes.length === 0) {
+      alert('ℹ️ No hay comisiones pendientes para eliminar')
       return
     }
 
+    if (!confirm(
+      `⚠️ ¿Eliminar SOLO las comisiones PENDIENTES?\n\n` +
+      `Se eliminarán ${pendientes.length} comisiones por un total de Q${stats.totalPendiente.toFixed(2)}\n\n` +
+      `Las comisiones PAGADAS NO se eliminarán.\n\n` +
+      `Esta acción NO se puede deshacer.`
+    )) {
+      return
+    }
+
+    setEliminando(true)
+
     try {
-      const { error } = await supabase
+      console.log('🗑️ Eliminando comisiones pendientes...')
+      
+      const { data, error } = await supabase
         .from('comisiones_mensuales')
         .delete()
         .eq('estado', 'pendiente')
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error al eliminar:', error)
+        throw error
+      }
 
-      alert('✅ Comisiones pendientes eliminadas')
-      loadComisiones()
+      console.log(`✅ Eliminadas ${data?.length || 0} comisiones pendientes`)
+
+      alert(`✅ Se eliminaron ${data?.length || 0} comisiones pendientes correctamente`)
+      
+      await loadComisiones()
+      
     } catch (error) {
-      alert('Error: ' + error.message)
+      console.error('💥 Error completo:', error)
+      alert('❌ Error al eliminar: ' + error.message)
+    } finally {
+      setEliminando(false)
     }
+  }
+
+  const limpiarTodo = async () => {
+    if (comisiones.length === 0) {
+      alert('ℹ️ No hay comisiones para eliminar')
+      return
+    }
+
+    const totalComisiones = comisiones.length
+    const totalMonto = stats.totalPendiente + stats.totalPagado
+
+    if (!confirm(
+      `🚨 ¿ELIMINAR TODAS LAS COMISIONES DEL MES?\n\n` +
+      `Se eliminarán ${totalComisiones} comisiones:\n` +
+      `  • ${stats.cantidadPendiente} pendientes (Q${stats.totalPendiente.toFixed(2)})\n` +
+      `  • ${stats.cantidadPagada} pagadas (Q${stats.totalPagado.toFixed(2)})\n\n` +
+      `Total: Q${totalMonto.toFixed(2)}\n\n` +
+      `⚠️ ESTO BORRARÁ TODO EL MES\n` +
+      `Esta acción NO se puede deshacer.\n\n` +
+      `¿Estás SEGURO de continuar?`
+    )) {
+      return
+    }
+
+    // Segunda confirmación para mayor seguridad
+    if (!confirm(
+      `⚠️ ÚLTIMA CONFIRMACIÓN\n\n` +
+      `Vas a eliminar ${totalComisiones} comisiones por Q${totalMonto.toFixed(2)}\n\n` +
+      `Escribe en la consola si estás seguro o cancela ahora.`
+    )) {
+      return
+    }
+
+    setEliminando(true)
+
+    try {
+      console.log('🗑️ Eliminando TODAS las comisiones del mes...')
+      
+      // Eliminar TODO (sin filtro de estado)
+      const { data, error } = await supabase
+        .from('comisiones_mensuales')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000') // Elimina todo
+        .select()
+
+      if (error) {
+        console.error('❌ Error al eliminar:', error)
+        throw error
+      }
+
+      console.log(`✅ Eliminadas ${data?.length || 0} comisiones en total`)
+
+      alert(
+        `✅ Todas las comisiones han sido eliminadas\n\n` +
+        `📊 Total eliminado: ${data?.length || 0} comisiones\n` +
+        `💰 Monto total: Q${totalMonto.toFixed(2)}`
+      )
+      
+      await loadComisiones()
+      
+    } catch (error) {
+      console.error('💥 Error completo:', error)
+      alert('❌ Error al eliminar: ' + error.message)
+    } finally {
+      setEliminando(false)
+    }
+  }
+
+  const handleVerDetalle = (comision) => {
+    setComisionSeleccionada(comision)
+    setShowDetalleModal(true)
   }
 
   if (loading) {
     return (
       <div className="card">
         <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid #e5e7eb',
+            borderTop: '4px solid #3b82f6',
+            borderRadius: '50%',
+            margin: '0 auto 16px',
+            animation: 'spin 1s linear infinite'
+          }}></div>
           <p>Cargando comisiones...</p>
         </div>
       </div>
@@ -167,10 +283,66 @@ export default function ComisionesMensualesAdmin() {
               <Download size={18} />
               Exportar
             </button>
+            
+            {/* Botón Limpiar Pendientes */}
             {stats.cantidadPendiente > 0 && (
-              <button onClick={limpiarPendientes} className="btn btn-danger">
-                <Trash2 size={18} />
-                Limpiar
+              <button 
+                onClick={limpiarPendientes} 
+                className="btn"
+                disabled={eliminando}
+                style={{ 
+                  backgroundColor: '#f59e0b',
+                  color: 'white'
+                }}
+                title="Eliminar solo comisiones pendientes"
+              >
+                {eliminando ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid white',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    <span>Eliminando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={18} />
+                    <span>Limpiar Pendientes</span>
+                  </>
+                )}
+              </button>
+            )}
+            
+            {/* Botón Limpiar TODO */}
+            {comisiones.length > 0 && (
+              <button 
+                onClick={limpiarTodo} 
+                className="btn btn-danger"
+                disabled={eliminando}
+                title="Eliminar TODAS las comisiones (pendientes y pagadas)"
+              >
+                {eliminando ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid white',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    <span>Eliminando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={18} />
+                    <span>Limpiar Todo</span>
+                  </>
+                )}
               </button>
             )}
           </div>
@@ -220,7 +392,16 @@ export default function ComisionesMensualesAdmin() {
             <div className="empty-comisiones">
               <CheckCircle size={64} color="#10b981" />
               <h3>No hay comisiones</h3>
-              <p>No se encontraron comisiones con este filtro</p>
+              <p>
+                {busqueda 
+                  ? 'No se encontraron comisiones con este filtro'
+                  : filtro === 'pendientes' 
+                    ? 'No hay comisiones pendientes' 
+                    : filtro === 'pagadas'
+                      ? 'No hay comisiones pagadas'
+                      : 'No hay comisiones registradas'
+                }
+              </p>
             </div>
           ) : (
             comisionesFiltradas.map((comision) => (
@@ -268,25 +449,35 @@ export default function ComisionesMensualesAdmin() {
 
                 {/* Info de Pago (si está pagado) */}
                 {comision.estado === 'pagado' && (
-                  <div className="comision-pago-info">
-                    <div className="pago-info-item">
-                      <span className="pago-label">Pagado por:</span>
-                      <span className="pago-valor">{comision.nombre_visitadora || '-'}</span>
+                  <>
+                    <div className="comision-pago-info">
+                      <div className="pago-info-item">
+                        <span className="pago-label">Pagado por:</span>
+                        <span className="pago-valor">{comision.nombre_visitadora || '-'}</span>
+                      </div>
+                      <div className="pago-info-item">
+                        <span className="pago-label">Fecha:</span>
+                        <span className="pago-valor">
+                          {comision.fecha_pago 
+                            ? new Date(comision.fecha_pago).toLocaleDateString('es-GT', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                              })
+                            : '-'
+                          }
+                        </span>
+                      </div>
                     </div>
-                    <div className="pago-info-item">
-                      <span className="pago-label">Fecha:</span>
-                      <span className="pago-valor">
-                        {comision.fecha_pago 
-                          ? new Date(comision.fecha_pago).toLocaleDateString('es-GT', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })
-                          : '-'
-                        }
-                      </span>
-                    </div>
-                  </div>
+                    {/* Botón Ver Detalle */}
+                    <button 
+                      onClick={() => handleVerDetalle(comision)}
+                      className="btn btn-primary btn-full btn-ver-detalle"
+                    >
+                      <Eye size={16} />
+                      Ver Detalle del Pago
+                    </button>
+                  </>
                 )}
               </div>
             ))
@@ -304,6 +495,23 @@ export default function ComisionesMensualesAdmin() {
           onClose={() => setShowImportModal(false)}
         />
       )}
+
+      {/* Modal Ver Detalle */}
+      {showDetalleModal && comisionSeleccionada && (
+        <DetallePagoComisionModal
+          comision={comisionSeleccionada}
+          onClose={() => {
+            setShowDetalleModal(false)
+            setComisionSeleccionada(null)
+          }}
+        />
+      )}
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }

@@ -16,6 +16,8 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
   const [expandedVisitaId, setExpandedVisitaId] = useState(null)
   const [editando, setEditando] = useState(false)
   const [guardando, setGuardando] = useState(false)
+  const [mostrarVisitas, setMostrarVisitas] = useState(false) // Control de visibilidad
+  const [buscandoVisitas, setBuscandoVisitas] = useState(false)
   
   // Estados para filtros
   const [filtroVisitas, setFiltroVisitas] = useState('')
@@ -51,18 +53,7 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
       })
     }
 
-    // Cargar visitas
-    const { data: visitasData } = await supabase
-      .from('visitas')
-      .select('*')
-      .eq('visitadora_id', visitadoraId)
-      .order('created_at', { ascending: false })
-
-    if (visitasData) {
-      setVisitas(visitasData)
-    }
-
-    // Cargar comisiones
+    // Cargar comisiones (estas sí se cargan automáticamente)
     const { data: comisionesData } = await supabase
       .from('comisiones')
       .select('*')
@@ -75,6 +66,24 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
     }
 
     setLoading(false)
+  }
+
+  // Función para cargar visitas SOLO cuando el usuario lo pida
+  const cargarVisitas = async () => {
+    setBuscandoVisitas(true)
+    
+    const { data: visitasData } = await supabase
+      .from('visitas')
+      .select('*')
+      .eq('visitadora_id', visitadoraId)
+      .order('created_at', { ascending: false })
+
+    if (visitasData) {
+      setVisitas(visitasData)
+      setMostrarVisitas(true)
+    }
+    
+    setBuscandoVisitas(false)
   }
 
   const handleChange = (e) => {
@@ -104,26 +113,9 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
     setGuardando(false)
   }
 
-  // Convertir fecha UTC a fecha local de Guatemala (GMT-6)
-  const convertirAFechaGuatemala = (dateString) => {
-    const fecha = new Date(dateString)
-    // Convertir a zona horaria de Guatemala (GMT-6)
-    const fechaGuatemala = new Date(fecha.toLocaleString('en-US', { timeZone: 'America/Guatemala' }))
-    return fechaGuatemala
-  }
-
-  // Obtener fecha en formato YYYY-MM-DD para Guatemala
-  const getFechaLocalString = (dateString) => {
-    const fecha = convertirAFechaGuatemala(dateString)
-    const year = fecha.getFullYear()
-    const month = String(fecha.getMonth() + 1).padStart(2, '0')
-    const day = String(fecha.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-
   const formatDate = (dateString) => {
-    const fecha = convertirAFechaGuatemala(dateString)
-    return fecha.toLocaleDateString('es-GT', {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -133,11 +125,8 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
   }
 
   const formatDateOnly = (dateString) => {
-    // Si viene en formato YYYY-MM-DD, crear la fecha directamente
-    const [year, month, day] = dateString.split('-').map(Number)
-    const fecha = new Date(year, month - 1, day)
-    
-    return fecha.toLocaleDateString('es-GT', {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
@@ -161,9 +150,9 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
 
   // Filtrar visitas según búsqueda Y fecha
   const visitasFiltradas = visitas.filter(visita => {
-    // Filtro por fecha - usando zona horaria de Guatemala
+    // Filtro por fecha
     if (fechaSeleccionada) {
-      const visitaFecha = getFechaLocalString(visita.created_at)
+      const visitaFecha = visita.created_at.split('T')[0]
       if (visitaFecha !== fechaSeleccionada) return false
     }
 
@@ -178,9 +167,9 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
     )
   })
 
-  // Agrupar visitas por fecha (usando zona horaria de Guatemala)
+  // Agrupar visitas por fecha
   const visitasPorDia = visitasFiltradas.reduce((grupos, visita) => {
-    const fecha = getFechaLocalString(visita.created_at)
+    const fecha = visita.created_at.split('T')[0]
     if (!grupos[fecha]) {
       grupos[fecha] = []
     }
@@ -200,18 +189,13 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
     return periodo.includes(searchTerm) || estado.includes(searchTerm)
   })
 
-  // Calcular estadísticas usando zona horaria de Guatemala
+  // Calcular estadísticas (SIN mostrar "Pendiente")
   const stats = {
     totalVisitas: visitas.length,
     visitasHoy: visitas.filter(v => {
-      const hoy = new Date()
-      const year = hoy.getFullYear()
-      const month = String(hoy.getMonth() + 1).padStart(2, '0')
-      const day = String(hoy.getDate()).padStart(2, '0')
-      const hoyString = `${year}-${month}-${day}`
-      
-      const visitaFecha = getFechaLocalString(v.created_at)
-      return visitaFecha === hoyString
+      const hoy = new Date().toISOString().split('T')[0]
+      const visitaFecha = v.created_at.split('T')[0]
+      return visitaFecha === hoy
     }).length,
     comisionesPagadas: comisiones
       .filter(c => c.estado === 'pagado')
@@ -348,38 +332,40 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
             )}
           </div>
 
-          {/* Estadísticas - SIN "Pendiente" */}
-          <div className="stats-row">
-            <div className="stat-box">
-              <div className="stat-icon" style={{ backgroundColor: '#dbeafe' }}>
-                <Calendar size={20} color="#3b82f6" />
+          {/* Estadísticas - Solo si ya se cargaron visitas */}
+          {mostrarVisitas && (
+            <div className="stats-row">
+              <div className="stat-box">
+                <div className="stat-icon" style={{ backgroundColor: '#dbeafe' }}>
+                  <Calendar size={20} color="#3b82f6" />
+                </div>
+                <div>
+                  <p className="stat-label">Visitas Hoy</p>
+                  <p className="stat-number">{stats.visitasHoy}</p>
+                </div>
               </div>
-              <div>
-                <p className="stat-label">Visitas Hoy</p>
-                <p className="stat-number">{stats.visitasHoy}</p>
-              </div>
-            </div>
 
-            <div className="stat-box">
-              <div className="stat-icon" style={{ backgroundColor: '#dcfce7' }}>
-                <TrendingUp size={20} color="#10b981" />
+              <div className="stat-box">
+                <div className="stat-icon" style={{ backgroundColor: '#dcfce7' }}>
+                  <TrendingUp size={20} color="#10b981" />
+                </div>
+                <div>
+                  <p className="stat-label">Total Visitas</p>
+                  <p className="stat-number">{stats.totalVisitas}</p>
+                </div>
               </div>
-              <div>
-                <p className="stat-label">Total Visitas</p>
-                <p className="stat-number">{stats.totalVisitas}</p>
-              </div>
-            </div>
 
-            <div className="stat-box">
-              <div className="stat-icon" style={{ backgroundColor: '#dcfce7' }}>
-                <DollarSign size={20} color="#10b981" />
-              </div>
-              <div>
-                <p className="stat-label">Comisiones Pagadas</p>
-                <p className="stat-number">{formatMonto(stats.comisionesPagadas)}</p>
+              <div className="stat-box">
+                <div className="stat-icon" style={{ backgroundColor: '#dcfce7' }}>
+                  <DollarSign size={20} color="#10b981" />
+                </div>
+                <div>
+                  <p className="stat-label">Comisiones Pagadas</p>
+                  <p className="stat-number">{formatMonto(stats.comisionesPagadas)}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Comisiones con Filtro */}
           <div className="section-card">
@@ -438,160 +424,180 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
             <div className="section-header">
               <h3>
                 <FileText size={20} />
-                Visitas ({visitasFiltradas.length})
+                Visitas {mostrarVisitas && `(${visitasFiltradas.length})`}
               </h3>
-            </div>
-
-            {/* Filtros de búsqueda */}
-            <div className="filtros-container">
-              <div className="filtro-grupo">
-                <label className="filtro-label">Buscar por fecha:</label>
-                <input
-                  type="date"
-                  value={fechaSeleccionada}
-                  onChange={(e) => setFechaSeleccionada(e.target.value)}
-                  className="input-date"
-                />
-              </div>
-
-              <div className="filtro-grupo">
-                <label className="filtro-label">Buscar por texto:</label>
-                <div className="search-box">
-                  <Search size={16} className="search-icon" />
-                  <input
-                    type="text"
-                    placeholder="Cliente, dirección, tipo..."
-                    value={filtroVisitas}
-                    onChange={(e) => setFiltroVisitas(e.target.value)}
-                    className="search-input"
-                  />
-                </div>
-              </div>
-
-              {(filtroVisitas || fechaSeleccionada) && (
+              {!mostrarVisitas && (
                 <button 
-                  onClick={limpiarFiltros}
-                  className="btn btn-secondary btn-small"
-                  style={{ alignSelf: 'flex-end' }}
+                  onClick={cargarVisitas}
+                  className="btn btn-primary"
+                  disabled={buscandoVisitas}
                 >
-                  Limpiar filtros
+                  <Search size={16} />
+                  {buscandoVisitas ? 'Cargando...' : 'Ver Visitas'}
                 </button>
               )}
             </div>
 
-            {visitasFiltradas.length === 0 ? (
-              <p className="empty-text">
-                {(filtroVisitas || fechaSeleccionada) 
-                  ? 'No se encontraron visitas con ese criterio' 
-                  : 'No hay visitas registradas'}
-              </p>
+            {!mostrarVisitas ? (
+              <div className="empty-preview">
+                <Search size={48} color="#d1d5db" />
+                <h4>Haz clic en "Ver Visitas" para cargar la información</h4>
+                <p>Las visitas se mostrarán aquí</p>
+              </div>
             ) : (
-              <div className="visitas-por-dia">
-                {fechasOrdenadas.map((fecha) => (
-                  <div key={fecha} className="dia-grupo">
-                    <div className="dia-header">
-                      <Calendar size={16} />
-                      <h4>{formatDateOnly(fecha)}</h4>
-                      <span className="dia-contador">
-                        {visitasPorDia[fecha].length} {visitasPorDia[fecha].length === 1 ? 'visita' : 'visitas'}
-                      </span>
-                    </div>
+              <>
+                {/* Filtros de búsqueda */}
+                <div className="filtros-container">
+                  <div className="filtro-grupo">
+                    <label className="filtro-label">Buscar por fecha:</label>
+                    <input
+                      type="date"
+                      value={fechaSeleccionada}
+                      onChange={(e) => setFechaSeleccionada(e.target.value)}
+                      className="input-date"
+                    />
+                  </div>
 
-                    <div className="visitas-list-detalle">
-                      {visitasPorDia[fecha].map((visita) => (
-                        <div key={visita.id} className="visita-item-detalle">
-                          <div 
-                            className="visita-header-detalle"
-                            onClick={() => setExpandedVisitaId(
-                              expandedVisitaId === visita.id ? null : visita.id
-                            )}
-                          >
-                            <div>
-                              <h4>{visita.nombre_cliente}</h4>
-                              <p className="visita-meta">
-                                {convertirAFechaGuatemala(visita.created_at).toLocaleTimeString('es-GT', {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
-                              </p>
-                            </div>
-                            {expandedVisitaId === visita.id ? (
-                              <ChevronUp size={20} />
-                            ) : (
-                              <ChevronDown size={20} />
-                            )}
-                          </div>
-
-                          {expandedVisitaId === visita.id && (
-                            <div className="visita-details-detalle">
-                              <div className="detail-row">
-                                <p><strong>Dirección:</strong> {visita.direccion}</p>
-                              </div>
-                              
-                              {visita.tipo_establecimiento && (
-                                <div className="detail-row">
-                                  <p><strong>Tipo:</strong> {visita.tipo_establecimiento}</p>
-                                </div>
-                              )}
-
-                              {visita.productos_presentados && visita.productos_presentados.length > 0 && (
-                                <div className="detail-row">
-                                  <p><strong>Servicios/Estudios:</strong></p>
-                                  <div className="servicios-tags">
-                                    {visita.productos_presentados.map((servicio, index) => (
-                                      <span key={index} className="servicio-tag">
-                                        {servicio}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {visita.observaciones && (
-                                <div className="detail-row">
-                                  <p><strong>Observaciones:</strong> {visita.observaciones}</p>
-                                </div>
-                              )}
-
-                              {visita.latitud && visita.longitud && (
-                                <div className="detail-row">
-                                  <p><strong>Ubicación GPS:</strong></p>
-                                  <div className="map-container-mini">
-                                    <MapContainer
-                                      center={[visita.latitud, visita.longitud]}
-                                      zoom={13}
-                                      style={{ height: '150px', width: '100%' }}
-                                      scrollWheelZoom={false}
-                                    >
-                                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                      <Marker position={[visita.latitud, visita.longitud]}>
-                                        <Popup>{visita.nombre_cliente}</Popup>
-                                      </Marker>
-                                    </MapContainer>
-                                  </div>
-                                </div>
-                              )}
-
-                              {visita.firma_url && (
-                                <div className="detail-row">
-                                  <p><strong>Firma del Cliente:</strong></p>
-                                  <div className="firma-display">
-                                    <img 
-                                      src={visita.firma_url} 
-                                      alt="Firma del cliente" 
-                                      className="firma-imagen"
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                  <div className="filtro-grupo">
+                    <label className="filtro-label">Buscar por texto:</label>
+                    <div className="search-box">
+                      <Search size={16} className="search-icon" />
+                      <input
+                        type="text"
+                        placeholder="Cliente, dirección, tipo..."
+                        value={filtroVisitas}
+                        onChange={(e) => setFiltroVisitas(e.target.value)}
+                        className="search-input"
+                      />
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  {(filtroVisitas || fechaSeleccionada) && (
+                    <button 
+                      onClick={limpiarFiltros}
+                      className="btn btn-secondary btn-small"
+                      style={{ alignSelf: 'flex-end' }}
+                    >
+                      Limpiar filtros
+                    </button>
+                  )}
+                </div>
+
+                {visitasFiltradas.length === 0 ? (
+                  <p className="empty-text">
+                    {(filtroVisitas || fechaSeleccionada) 
+                      ? 'No se encontraron visitas con ese criterio' 
+                      : 'No hay visitas registradas'}
+                  </p>
+                ) : (
+                  <div className="visitas-por-dia">
+                    {fechasOrdenadas.map((fecha) => (
+                      <div key={fecha} className="dia-grupo">
+                        <div className="dia-header">
+                          <Calendar size={16} />
+                          <h4>{formatDateOnly(fecha)}</h4>
+                          <span className="dia-contador">
+                            {visitasPorDia[fecha].length} {visitasPorDia[fecha].length === 1 ? 'visita' : 'visitas'}
+                          </span>
+                        </div>
+
+                        <div className="visitas-list-detalle">
+                          {visitasPorDia[fecha].map((visita) => (
+                            <div key={visita.id} className="visita-item-detalle">
+                              <div 
+                                className="visita-header-detalle"
+                                onClick={() => setExpandedVisitaId(
+                                  expandedVisitaId === visita.id ? null : visita.id
+                                )}
+                              >
+                                <div>
+                                  <h4>{visita.nombre_cliente}</h4>
+                                  <p className="visita-meta">
+                                    {new Date(visita.created_at).toLocaleTimeString('es-ES', {
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                </div>
+                                {expandedVisitaId === visita.id ? (
+                                  <ChevronUp size={20} />
+                                ) : (
+                                  <ChevronDown size={20} />
+                                )}
+                              </div>
+
+                              {expandedVisitaId === visita.id && (
+                                <div className="visita-details-detalle">
+                                  <div className="detail-row">
+                                    <p><strong>Dirección:</strong> {visita.direccion}</p>
+                                  </div>
+                                  
+                                  {visita.tipo_establecimiento && (
+                                    <div className="detail-row">
+                                      <p><strong>Tipo:</strong> {visita.tipo_establecimiento}</p>
+                                    </div>
+                                  )}
+
+                                  {visita.productos_presentados && visita.productos_presentados.length > 0 && (
+                                    <div className="detail-row">
+                                      <p><strong>Servicios/Estudios:</strong></p>
+                                      <div className="servicios-tags">
+                                        {visita.productos_presentados.map((servicio, index) => (
+                                          <span key={index} className="servicio-tag">
+                                            {servicio}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {visita.observaciones && (
+                                    <div className="detail-row">
+                                      <p><strong>Observaciones:</strong> {visita.observaciones}</p>
+                                    </div>
+                                  )}
+
+                                  {visita.latitud && visita.longitud && (
+                                    <div className="detail-row">
+                                      <p><strong>Ubicación GPS:</strong></p>
+                                      <div className="map-container-mini">
+                                        <MapContainer
+                                          center={[visita.latitud, visita.longitud]}
+                                          zoom={13}
+                                          style={{ height: '150px', width: '100%' }}
+                                          scrollWheelZoom={false}
+                                        >
+                                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                          <Marker position={[visita.latitud, visita.longitud]}>
+                                            <Popup>{visita.nombre_cliente}</Popup>
+                                          </Marker>
+                                        </MapContainer>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {visita.firma_url && (
+                                    <div className="detail-row">
+                                      <p><strong>Firma del Cliente:</strong></p>
+                                      <div className="firma-display">
+                                        <img 
+                                          src={visita.firma_url} 
+                                          alt="Firma del cliente" 
+                                          className="firma-imagen"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

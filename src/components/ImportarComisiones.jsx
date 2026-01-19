@@ -15,6 +15,8 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
     const file = e.target.files[0]
     if (!file) return
 
+    console.log('📄 Archivo seleccionado:', file.name)
+    
     setArchivo(file)
     setError('')
     setPreview([])
@@ -24,28 +26,78 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
       const data = await file.arrayBuffer()
       const workbook = XLSX.read(data)
       
+      console.log('📊 Hojas disponibles:', workbook.SheetNames)
+      
       // Buscar la hoja correcta (Hoja3 o la primera)
       let sheetName = workbook.SheetNames.includes('Hoja3') 
         ? 'Hoja3' 
         : workbook.SheetNames[0]
       
+      console.log('📑 Usando hoja:', sheetName)
+      
       const worksheet = workbook.Sheets[sheetName]
       const jsonData = XLSX.utils.sheet_to_json(worksheet)
+
+      console.log('📋 Datos crudos del Excel:', jsonData)
+      console.log('📋 Primera fila como ejemplo:', jsonData[0])
+
+      // Debug: Ver las columnas disponibles
+      if (jsonData.length > 0) {
+        console.log('🔑 Columnas disponibles en el Excel:', Object.keys(jsonData[0]))
+      }
 
       // Procesar datos
       const comisionesProcesadas = []
       
       for (const row of jsonData) {
         // Buscar columnas (pueden tener nombres diferentes)
-        const nombre = row['Etiquetas de fila'] || row['NOMBRE'] || row['Nombre'] || row['nombre']
-        const comUsg = parseFloat(row['Suma de COMISION USG'] || row['COMISION USG'] || row['USG'] || 0)
-        const comEsp = parseFloat(row['Suma de COMISION ESPECIAL'] || row['COMISION ESPECIAL'] || row['ESPECIAL'] || 0)
-        const comEkg = parseFloat(row['Suma de COMISION EKG, PAP, LABS'] || row['COMISION EKG'] || row['EKG'] || 0)
+        const nombre = 
+          row['Nombre del Médico/Establecimiento'] ||  // ⭐ Nombre correcto de la plantilla
+          row['Etiquetas de fila'] || 
+          row['NOMBRE'] || 
+          row['Nombre'] || 
+          row['nombre'] ||
+          row['Medico'] ||
+          row['MEDICO'] ||
+          row['medico'] ||
+          row['Nombre del Médico'] ||
+          row['NOMBRE DEL MEDICO']
+        
+        const comUsg = parseFloat(
+          row['Comisión USG'] ||  // ⭐ Nombre correcto de la plantilla
+          row['Suma de COMISION USG'] || 
+          row['COMISION USG'] || 
+          row['USG'] || 
+          row['comision_usg'] ||
+          0
+        )
+        
+        const comEsp = parseFloat(
+          row['Comisión Especial'] ||  // ⭐ Nombre correcto de la plantilla
+          row['Suma de COMISION ESPECIAL'] || 
+          row['COMISION ESPECIAL'] || 
+          row['ESPECIAL'] || 
+          row['comision_especial'] ||
+          0
+        )
+        
+        const comEkg = parseFloat(
+          row['Comisión EKG/PAP/LABS'] ||  // ⭐ Nombre correcto de la plantilla
+          row['Suma de COMISION EKG, PAP, LABS'] || 
+          row['COMISION EKG'] || 
+          row['EKG'] || 
+          row['comision_ekg'] ||
+          row['COMISION EKG/PAP/LABS'] ||
+          0
+        )
         
         const total = comUsg + comEsp + comEkg
 
+        console.log(`Fila: ${JSON.stringify(row)}`)
+        console.log(`  → Nombre: "${nombre}", USG: ${comUsg}, ESP: ${comEsp}, EKG: ${comEkg}, Total: ${total}`)
+
         // Solo agregar si tiene nombre y total > 0
-        if (nombre && total > 0) {
+        if (nombre && nombre.toString().trim() !== '' && total > 0) {
           comisionesProcesadas.push({
             nombre_medico: nombre.toString().trim(),
             comision_usg: comUsg,
@@ -53,8 +105,13 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
             comision_ekg: comEkg,
             total: total
           })
+          console.log(`  ✅ Comisión agregada`)
+        } else {
+          console.log(`  ❌ Fila ignorada: nombre="${nombre}", total=${total}`)
         }
       }
+
+      console.log(`✅ ${comisionesProcesadas.length} comisiones procesadas`)
 
       // Ordenar por total descendente
       comisionesProcesadas.sort((a, b) => b.total - a.total)
@@ -66,7 +123,7 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
       })
 
     } catch (error) {
-      console.error('Error al procesar Excel:', error)
+      console.error('❌ Error al procesar Excel:', error)
       setError('Error al procesar el archivo. Verifica que sea un Excel válido.')
     }
   }
@@ -81,12 +138,17 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
     setError('')
 
     try {
+      console.log('🚀 Iniciando importación...')
+      
       // Obtener mes y año actual
       const fecha = new Date()
       const mes = fecha.getMonth() + 1
       const anio = fecha.getFullYear()
 
+      console.log(`📅 Mes: ${mes}, Año: ${anio}`)
+
       // Preparar datos para insertar
+      // ⚠️ IMPORTANTE: NO incluir total_comision porque es una columna generada
       const datosParaInsertar = preview.map(c => ({
         mes,
         anio,
@@ -94,22 +156,61 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
         comision_usg: c.comision_usg,
         comision_especial: c.comision_especial,
         comision_ekg: c.comision_ekg,
-        estado: 'pendiente'
+        // total_comision se calcula automáticamente (columna generada)
+        estado: 'pendiente',
+        created_at: new Date().toISOString()
       }))
+
+      console.log('📦 Datos a insertar (sin total_comision):', datosParaInsertar.slice(0, 2))
 
       // Insertar en la base de datos
       const { data, error } = await supabase
         .from('comisiones_mensuales')
         .insert(datosParaInsertar)
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error de Supabase:', error)
+        throw error
+      }
 
-      alert(`✅ ${preview.length} comisiones importadas exitosamente`)
+      console.log('✅ Datos insertados:', data)
+      console.log(`✅ ${data?.length || preview.length} registros insertados`)
+
+      // Verificar que los totales se calcularon correctamente
+      if (data && data.length > 0) {
+        console.log('🔍 Verificando cálculo de total_comision:')
+        data.slice(0, 3).forEach(item => {
+          const totalCalculado = (item.comision_usg || 0) + (item.comision_especial || 0) + (item.comision_ekg || 0)
+          console.log(`  ${item.nombre_medico}: total_comision=${item.total_comision}, calculado=${totalCalculado}`)
+        })
+      }
+
+      alert(
+        `✅ Importación exitosa\n\n` +
+        `📊 Comisiones importadas: ${data?.length || preview.length}\n` +
+        `💰 Total: Q${stats.montoTotal.toFixed(2)}\n` +
+        `📅 Mes: ${mes}/${anio}\n\n` +
+        `Los totales se calcularon automáticamente.`
+      )
+      
       onImportExitoso()
       
     } catch (error) {
-      console.error('Error al importar:', error)
-      setError('Error al importar: ' + error.message)
+      console.error('💥 Error al importar:', error)
+      
+      let mensajeError = error.message
+      
+      // Mensaje más claro para errores comunes
+      if (error.message.includes('generated column')) {
+        mensajeError = 'Error: La columna total_comision es generada automáticamente. Contacta al administrador.'
+      } else if (error.message.includes('duplicate key')) {
+        mensajeError = 'Error: Ya existen comisiones para este mes. Elimina las existentes primero.'
+      } else if (error.message.includes('permission denied')) {
+        mensajeError = 'Error: No tienes permisos para insertar comisiones.'
+      }
+      
+      setError(mensajeError)
     } finally {
       setProcesando(false)
     }
@@ -135,6 +236,7 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
                 <li>Sube el archivo Excel con las comisiones del mes</li>
                 <li>El archivo debe tener: Nombre del médico y 3 columnas de comisiones</li>
                 <li>Solo se importarán registros con comisión mayor a Q0</li>
+                <li><strong>Tip:</strong> Descarga la plantilla para ver el formato correcto</li>
               </ul>
             </div>
           </div>
@@ -163,7 +265,11 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
           {/* Error */}
           {error && (
             <div className="error-message">
-              {error}
+              <AlertCircle size={20} />
+              <div>
+                <strong>Error al importar:</strong>
+                <p>{error}</p>
+              </div>
             </div>
           )}
 
@@ -173,28 +279,55 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
               <div className="preview-header">
                 <h4>Vista Previa</h4>
                 <div className="preview-stats">
-                  <span>{stats.total} comisiones</span>
-                  <span>Total: Q{stats.montoTotal.toFixed(2)}</span>
+                  <span className="badge badge-blue">{stats.total} comisiones</span>
+                  <span className="badge badge-green">Total: Q{stats.montoTotal.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="preview-list">
                 {preview.slice(0, 10).map((comision, idx) => (
                   <div key={idx} className="preview-item">
-                    <div className="preview-nombre">{comision.nombre_medico}</div>
+                    <div className="preview-nombre">
+                      <span className="preview-numero">{idx + 1}.</span>
+                      {comision.nombre_medico}
+                    </div>
                     <div className="preview-desglose">
                       <span>USG: Q{comision.comision_usg.toFixed(2)}</span>
                       <span>ESP: Q{comision.comision_especial.toFixed(2)}</span>
                       <span>EKG: Q{comision.comision_ekg.toFixed(2)}</span>
                     </div>
-                    <div className="preview-total">Q{comision.total.toFixed(2)}</div>
+                    <div className="preview-total">
+                      <strong>Q{comision.total.toFixed(2)}</strong>
+                    </div>
                   </div>
                 ))}
                 {preview.length > 10 && (
                   <p className="preview-mas">
-                    Y {preview.length - 10} más...
+                    Y {preview.length - 10} comisiones más...
                   </p>
                 )}
+              </div>
+
+              {/* Resumen final */}
+              <div className="preview-resumen">
+                <div className="resumen-item">
+                  <span className="resumen-label">Total registros:</span>
+                  <span className="resumen-valor">{stats.total}</span>
+                </div>
+                <div className="resumen-item">
+                  <span className="resumen-label">Monto total:</span>
+                  <span className="resumen-valor"><strong>Q{stats.montoTotal.toFixed(2)}</strong></span>
+                </div>
+                <div className="resumen-item">
+                  <span className="resumen-label">Mes:</span>
+                  <span className="resumen-valor">
+                    {new Date().toLocaleDateString('es-GT', { month: 'long', year: 'numeric' })}
+                  </span>
+                </div>
+                <div className="resumen-nota">
+                  <AlertCircle size={14} />
+                  <small>El total de cada comisión se calculará automáticamente</small>
+                </div>
               </div>
             </div>
           )}
@@ -213,10 +346,117 @@ export default function ImportarComisiones({ onImportExitoso, onClose }) {
             className="btn btn-success"
             disabled={procesando || preview.length === 0}
           >
-            <Upload size={18} />
-            {procesando ? 'Importando...' : `Importar ${preview.length} Comisiones`}
+            {procesando ? (
+              <>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid white',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite',
+                  marginRight: '8px'
+                }}></div>
+                Importando...
+              </>
+            ) : (
+              <>
+                <Upload size={18} />
+                Importar {preview.length} Comisiones
+              </>
+            )}
           </button>
         </div>
+
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+
+          .preview-numero {
+            color: #6b7280;
+            font-weight: 500;
+            margin-right: 8px;
+          }
+
+          .preview-resumen {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .resumen-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .resumen-label {
+            color: #6b7280;
+            font-size: 14px;
+          }
+
+          .resumen-valor {
+            color: #111827;
+            font-size: 14px;
+          }
+
+          .resumen-nota {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px;
+            background: #dbeafe;
+            border-radius: 6px;
+            margin-top: 4px;
+          }
+
+          .resumen-nota small {
+            color: #1e40af;
+            font-size: 12px;
+          }
+
+          .badge {
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+          }
+
+          .badge-blue {
+            background: #dbeafe;
+            color: #1e40af;
+          }
+
+          .badge-green {
+            background: #d1fae5;
+            color: #065f46;
+          }
+
+          .error-message {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            color: #991b1b;
+          }
+
+          .error-message strong {
+            display: block;
+            margin-bottom: 4px;
+          }
+
+          .error-message p {
+            margin: 0;
+            font-size: 14px;
+          }
+        `}</style>
       </div>
     </div>
   )
