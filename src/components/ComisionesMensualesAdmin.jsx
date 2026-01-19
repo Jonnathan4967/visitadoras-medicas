@@ -265,7 +265,7 @@ export default function ComisionesMensualesAdmin() {
       <div className="card">
         <div className="card-header">
           <div>
-            <h3>Comisiones del Mes - Diciembre 2024</h3>
+            <h3>Comisiones del Mes</h3>
             <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
               Gestión de comisiones mensuales
             </p>
