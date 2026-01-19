@@ -78,10 +78,13 @@ export default function VisitadoraDashboard() {
           <h1>Panel de Visitadora</h1>
           <p>Sistema de Gestión de Visitadoras Médicas</p>
         </div>
-        <button onClick={handleLogout} className="btn btn-secondary">
-          <LogOut size={18} />
-          Cerrar Sesión
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <BotonCreditos compact />
+          <button onClick={handleLogout} className="btn btn-secondary">
+            <LogOut size={18} />
+            Cerrar Sesión
+          </button>
+        </div>
       </div>
 
       <div className="dashboard-content">
@@ -174,8 +177,6 @@ export default function VisitadoraDashboard() {
           </div>
         </div>
       </div>
-
-      <BotonCreditos />
 
       {showRegistrarVisita && (
         <RegistrarVisita

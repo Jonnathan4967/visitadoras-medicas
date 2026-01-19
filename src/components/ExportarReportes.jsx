@@ -27,7 +27,7 @@ export default function ExportarReportes({ tipo = 'visitadora' }) {
       .from('profiles')
       .select('id, nombre, email')
       .eq('role', 'visitadora')
-      .eq('activo', true) // Solo visitadoras activas
+      .eq('activo', true)
       .order('nombre')
     
     if (data) setVisitadoras(data)
@@ -49,8 +49,7 @@ export default function ExportarReportes({ tipo = 'visitadora' }) {
           'Cliente': v.nombre_cliente,
           'Dirección': v.direccion,
           'Tipo': v.tipo_establecimiento || '',
-          'Servicios': v.productos_presentados?.join(', ') || '',
-          'Observaciones': v.observaciones || '',
+          'Observaciones': v.observaciones || 'Sin observaciones',
           'Latitud': v.latitud || '',
           'Longitud': v.longitud || ''
         }))
@@ -126,21 +125,21 @@ export default function ExportarReportes({ tipo = 'visitadora' }) {
         doc.text(`Total de visitas: ${datos.visitas.length}`, 14, yPos + 3)
         yPos += 8
         
-        // Tabla de Visitas con MÁS columnas
+        // Tabla de Visitas - CAMBIADO "Servicios" por "Observaciones"
         const visitasRows = datos.visitas.map(v => [
           new Date(v.created_at).toLocaleDateString('es-ES'),
           new Date(v.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
           v.nombre_cliente,
-          v.tipo_establecimiento || '-',
-          v.direccion.length > 35 ? v.direccion.substring(0, 35) + '...' : v.direccion,
-          v.productos_presentados && v.productos_presentados.length > 0 
-            ? v.productos_presentados.join(', ').substring(0, 40) + '...'
-            : '-'
+          v.tipo_establecimiento || 'Sin especificar',
+          v.direccion.length > 30 ? v.direccion.substring(0, 30) + '...' : v.direccion,
+          v.observaciones 
+            ? (v.observaciones.length > 35 ? v.observaciones.substring(0, 35) + '...' : v.observaciones)
+            : 'Sin observaciones'
         ])
         
         doc.autoTable({
           startY: yPos,
-          head: [['Fecha', 'Hora', 'Cliente', 'Tipo', 'Dirección', 'Servicios']],
+          head: [['Fecha', 'Hora', 'Cliente', 'Tipo', 'Dirección', 'Observaciones']],
           body: visitasRows,
           theme: 'striped',
           headStyles: { 
@@ -158,8 +157,8 @@ export default function ExportarReportes({ tipo = 'visitadora' }) {
             1: { cellWidth: 18 },  // Hora
             2: { cellWidth: 35 },  // Cliente
             3: { cellWidth: 28 },  // Tipo
-            4: { cellWidth: 40 },  // Dirección
-            5: { cellWidth: 45 }   // Servicios
+            4: { cellWidth: 35 },  // Dirección
+            5: { cellWidth: 50 }   // Observaciones
           },
           alternateRowStyles: {
             fillColor: [245, 247, 250]

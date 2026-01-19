@@ -179,10 +179,13 @@ export default function AdminDashboard() {
           <h1>Panel de Administrador</h1>
           <p>Sistema de Gestión de Visitadoras Médicas</p>
         </div>
-        <button onClick={logout} className="btn btn-secondary">
-          <LogOut size={18} />
-          Cerrar Sesión
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <BotonCreditos />
+          <button onClick={logout} className="btn btn-secondary">
+            <LogOut size={18} />
+            Cerrar Sesión
+          </button>
+        </div>
       </div>
 
       <div className="dashboard-content">
@@ -311,8 +314,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-
-      <BotonCreditos />
 
       {/* Modal Agregar Visitadora */}
       {showAgregarModal && (

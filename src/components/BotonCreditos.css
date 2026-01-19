@@ -1,35 +1,53 @@
-/* Botón Flotante */
-.btn-flotante-creditos {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+/* Botón en Header */
+.btn-header-creditos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
+  border-radius: 8px;
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-header-creditos:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-header-creditos:active {
+  transform: translateY(0);
+}
+
+/* Botón Compacto (solo ícono) */
+.btn-header-creditos-compact {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
-  z-index: 999;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.btn-flotante-creditos svg {
-  width: 18px;
-  height: 18px;
+.btn-header-creditos-compact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.btn-flotante-creditos:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.btn-flotante-creditos:active {
-  transform: scale(0.95);
+.btn-header-creditos-compact:active {
+  transform: translateY(0);
 }
 
 /* Modal de Créditos */
@@ -288,16 +306,14 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .btn-flotante-creditos {
-    bottom: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
+  .btn-header-creditos {
+    padding: 6px 12px;
+    font-size: 13px;
   }
 
-  .btn-flotante-creditos svg {
-    width: 16px;
-    height: 16px;
+  .btn-header-creditos svg {
+    width: 14px;
+    height: 14px;
   }
 
   .modal-creditos {

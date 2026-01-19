@@ -1,34 +1,59 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { DollarSign, CheckCircle, Calendar, Search } from 'lucide-react'
+import { useAuthStore } from '../store/authStore'
+import { DollarSign, CheckCircle, Calendar, Search, Clock, TrendingUp } from 'lucide-react'
 import PagarComisionModal from './PagarComisionModal'
 import './ComisionesMensuales.css'
 
 export default function ComisionesMensualesVisitadora() {
-  const [comisionesPendientes, setComisionesPendientes] = useState([])
+  const { user } = useAuthStore()
+  const [comisiones, setComisiones] = useState([])
   const [loading, setLoading] = useState(true)
   const [showPagarModal, setShowPagarModal] = useState(false)
   const [comisionSeleccionada, setComisionSeleccionada] = useState(null)
   const [busqueda, setBusqueda] = useState('')
+  const [filtro, setFiltro] = useState('todas') // todas, pendientes, pagadas
+  const [stats, setStats] = useState({
+    totalPendiente: 0,
+    totalPagado: 0,
+    cantidadPendiente: 0,
+    cantidadPagada: 0
+  })
 
   useEffect(() => {
-    loadComisionesPendientes()
-  }, [])
+    loadComisiones()
+  }, [user])
 
-  const loadComisionesPendientes = async () => {
+  useEffect(() => {
+    calcularStats()
+  }, [comisiones])
+
+  const loadComisiones = async () => {
     setLoading(true)
     
     const { data, error } = await supabase
       .from('comisiones_mensuales')
       .select('*')
-      .eq('estado', 'pendiente')
+      .order('estado', { ascending: true })
       .order('total_comision', { ascending: false })
 
     if (data) {
-      setComisionesPendientes(data)
+      setComisiones(data)
     }
     
     setLoading(false)
+  }
+
+  const calcularStats = () => {
+    const pendientes = comisiones.filter(c => c.estado === 'pendiente')
+    const pagadas = comisiones.filter(c => c.estado === 'pagado')
+
+    setStats({
+      totalPendiente: pendientes.reduce((sum, c) => sum + parseFloat(c.total_comision || 0), 0),
+      totalPagado: pagadas.reduce((sum, c) => sum + parseFloat(c.total_comision || 0), 0),
+      cantidadPendiente: pendientes.length,
+      cantidadPagada: pagadas.length
+    })
   }
 
   const handlePagar = (comision) => {
@@ -39,18 +64,24 @@ export default function ComisionesMensualesVisitadora() {
   const handlePagoExitoso = () => {
     setShowPagarModal(false)
     setComisionSeleccionada(null)
-    loadComisionesPendientes() // Recargar lista
+    loadComisiones()
   }
 
-  const totalPendiente = comisionesPendientes.reduce((sum, c) => 
-    sum + parseFloat(c.total_comision || 0), 0
-  )
-
-  // Filtrar por búsqueda
-  const comisionesFiltradas = comisionesPendientes.filter(c => {
-    if (!busqueda.trim()) return true
-    const termino = busqueda.toLowerCase()
-    return c.nombre_medico?.toLowerCase().includes(termino)
+  // Filtrar comisiones
+  const comisionesFiltradas = comisiones.filter(c => {
+    // Filtro por estado
+    let pasaFiltroEstado = true
+    if (filtro === 'pendientes') pasaFiltroEstado = c.estado === 'pendiente'
+    if (filtro === 'pagadas') pasaFiltroEstado = c.estado === 'pagado'
+    
+    // Filtro por búsqueda
+    let pasaBusqueda = true
+    if (busqueda.trim()) {
+      const termino = busqueda.toLowerCase()
+      pasaBusqueda = c.nombre_medico?.toLowerCase().includes(termino)
+    }
+    
+    return pasaFiltroEstado && pasaBusqueda
   })
 
   if (loading) {
@@ -65,97 +96,183 @@ export default function ComisionesMensualesVisitadora() {
 
   return (
     <div className="comisiones-mensuales-visitadora">
-      {/* Header con Stats */}
-      <div className="comisiones-header">
-        <div className="header-info">
-          <Calendar size={20} />
+      {/* Stats Cards */}
+      <div className="stats-grid-comisiones">
+        <div className="stat-card-comision pendiente">
+          <div className="stat-icon-comision">
+            <Clock size={24} />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Pendiente de Pago</span>
+            <span className="stat-value">Q{stats.totalPendiente.toFixed(2)}</span>
+            <span className="stat-subtitle">{stats.cantidadPendiente} médicos</span>
+          </div>
+        </div>
+
+        <div className="stat-card-comision pagado">
+          <div className="stat-icon-comision">
+            <CheckCircle size={24} />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Pagado</span>
+            <span className="stat-value">Q{stats.totalPagado.toFixed(2)}</span>
+            <span className="stat-subtitle">{stats.cantidadPagada} médicos</span>
+          </div>
+        </div>
+
+        <div className="stat-card-comision total">
+          <div className="stat-icon-comision">
+            <TrendingUp size={24} />
+          </div>
+          <div className="stat-info">
+            <span className="stat-label">Total del Mes</span>
+            <span className="stat-value">Q{(stats.totalPendiente + stats.totalPagado).toFixed(2)}</span>
+            <span className="stat-subtitle">{comisiones.length} registros</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Card Principal */}
+      <div className="card">
+        <div className="card-header">
           <div>
             <h3>Comisiones del Mes</h3>
-            <p>Diciembre 2024</p>
+            <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>
+              Diciembre 2024
+            </p>
           </div>
         </div>
-        <div className="header-total">
-          <span className="total-label">Total Pendiente:</span>
-          <span className="total-value">Q{totalPendiente.toFixed(2)}</span>
-        </div>
-      </div>
 
-      {/* Buscador */}
-      <div className="search-section-comisiones">
-        <div className="search-container-comisiones">
-          <Search size={20} />
-          <input
-            type="text"
-            className="search-input-comisiones"
-            placeholder="Buscar médico..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-          />
+        {/* Filtros */}
+        <div className="filtros-comisiones">
+          <button
+            className={`filtro-btn ${filtro === 'todas' ? 'active' : ''}`}
+            onClick={() => setFiltro('todas')}
+          >
+            Todas ({comisiones.length})
+          </button>
+          <button
+            className={`filtro-btn ${filtro === 'pendientes' ? 'active' : ''}`}
+            onClick={() => setFiltro('pendientes')}
+          >
+            <Clock size={16} />
+            Pendientes ({stats.cantidadPendiente})
+          </button>
+          <button
+            className={`filtro-btn ${filtro === 'pagadas' ? 'active' : ''}`}
+            onClick={() => setFiltro('pagadas')}
+          >
+            <CheckCircle size={16} />
+            Pagadas ({stats.cantidadPagada})
+          </button>
         </div>
-      </div>
 
-      {/* Lista de Comisiones */}
-      <div className="comisiones-grid">
-        {comisionesFiltradas.length === 0 ? (
-          <div className="empty-comisiones">
-            {busqueda ? (
-              <>
-                <Search size={64} color="#9ca3af" />
-                <h3>No se encontraron resultados</h3>
-                <p>Intenta con otro término de búsqueda</p>
-              </>
-            ) : (
-              <>
-                <CheckCircle size={64} color="#10b981" />
-                <h3>¡Todo Pagado!</h3>
-                <p>No hay comisiones pendientes por pagar este mes</p>
-              </>
-            )}
+        {/* Buscador */}
+        <div className="search-section-comisiones">
+          <div className="search-container-comisiones">
+            <Search size={20} className="search-icon-comisiones" />
+            <input
+              type="text"
+              className="search-input-comisiones"
+              placeholder="Buscar por médico..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
           </div>
-        ) : (
-          comisionesFiltradas.map((comision) => (
-            <div key={comision.id} className="comision-card">
-              <div className="comision-header">
-                <div className="comision-icon">
-                  <DollarSign size={24} />
-                </div>
-                <div className="comision-info">
-                  <h4>{comision.nombre_medico}</h4>
-                  <span className="comision-mes">Diciembre 2024</span>
-                </div>
-              </div>
+        </div>
 
-              <div className="comision-detalles">
-                <div className="detalle-row">
-                  <span className="detalle-label">Comisión USG:</span>
-                  <span className="detalle-valor">Q{parseFloat(comision.comision_usg || 0).toFixed(2)}</span>
-                </div>
-                <div className="detalle-row">
-                  <span className="detalle-label">Comisión Especial:</span>
-                  <span className="detalle-valor">Q{parseFloat(comision.comision_especial || 0).toFixed(2)}</span>
-                </div>
-                <div className="detalle-row">
-                  <span className="detalle-label">Comisión EKG/PAP/LABS:</span>
-                  <span className="detalle-valor">Q{parseFloat(comision.comision_ekg || 0).toFixed(2)}</span>
-                </div>
-                <div className="detalle-row total-row">
-                  <span className="detalle-label"><strong>TOTAL A PAGAR:</strong></span>
-                  <span className="detalle-valor total">
-                    Q{parseFloat(comision.total_comision || 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              <button 
-                onClick={() => handlePagar(comision)}
-                className="btn btn-success btn-full"
-              >
-                <CheckCircle size={18} />
-                Marcar como Pagado
-              </button>
+        {/* Lista de Comisiones */}
+        <div className="comisiones-grid">
+          {comisionesFiltradas.length === 0 ? (
+            <div className="empty-comisiones">
+              {busqueda ? (
+                <>
+                  <Search size={64} color="#9ca3af" />
+                  <h3>No se encontraron resultados</h3>
+                  <p>Intenta con otro término de búsqueda</p>
+                </>
+              ) : filtro === 'pendientes' ? (
+                <>
+                  <CheckCircle size={64} color="#10b981" />
+                  <h3>¡Todo Pagado!</h3>
+                  <p>No hay comisiones pendientes por pagar este mes</p>
+                </>
+              ) : (
+                <>
+                  <DollarSign size={64} color="#9ca3af" />
+                  <h3>No hay comisiones</h3>
+                  <p>No se encontraron comisiones con este filtro</p>
+                </>
+              )}
             </div>
-          ))
-        )}
+          ) : (
+            comisionesFiltradas.map((comision) => (
+              <div key={comision.id} className="comision-card">
+                <div className="comision-header">
+                  <div className="comision-icon">
+                    <DollarSign size={24} />
+                  </div>
+                  <div className="comision-info">
+                    <h4>{comision.nombre_medico}</h4>
+                    <span className="comision-mes">Diciembre 2024</span>
+                  </div>
+                  {comision.estado === 'pagado' && (
+                    <span className="badge-estado-small pagado">
+                      <CheckCircle size={14} />
+                      Pagado
+                    </span>
+                  )}
+                </div>
+
+                <div className="comision-detalles">
+                  <div className="detalle-row">
+                    <span className="detalle-label">Comisión USG:</span>
+                    <span className="detalle-valor">Q{parseFloat(comision.comision_usg || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="detalle-row">
+                    <span className="detalle-label">Comisión Especial:</span>
+                    <span className="detalle-valor">Q{parseFloat(comision.comision_especial || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="detalle-row">
+                    <span className="detalle-label">Comisión EKG/PAP/LABS:</span>
+                    <span className="detalle-valor">Q{parseFloat(comision.comision_ekg || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="detalle-row total-row">
+                    <span className="detalle-label"><strong>TOTAL A PAGAR:</strong></span>
+                    <span className="detalle-valor total">
+                      Q{parseFloat(comision.total_comision || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Botón solo si está pendiente */}
+                {comision.estado === 'pendiente' && (
+                  <button 
+                    onClick={() => handlePagar(comision)}
+                    className="btn btn-success btn-full"
+                  >
+                    <CheckCircle size={18} />
+                    Marcar como Pagado
+                  </button>
+                )}
+
+                {/* Info de pago si está pagado */}
+                {comision.estado === 'pagado' && comision.fecha_pago && (
+                  <div className="pago-info-footer">
+                    <Calendar size={14} />
+                    <span>
+                      Pagado el {new Date(comision.fecha_pago).toLocaleDateString('es-GT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Modal Pagar */}

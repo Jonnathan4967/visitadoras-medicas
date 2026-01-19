@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { Upload, Plus, Search, Edit2, Trash2, Stethoscope, MapPin, Phone, Building, X, Save } from 'lucide-react'
+import { Upload, Plus, Search, Edit2, Trash2, Stethoscope, MapPin, Phone, Building, X, Save, Download, FileSpreadsheet } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import { exportarMedicosAExcel, exportarPlantillaMedicos } from '../utils/exportarMedicos'
 import './GestionMedicos.css'
 
 export default function GestionMedicos() {
@@ -177,6 +178,45 @@ export default function GestionMedicos() {
     }
   }
 
+  // ✅ NUEVA FUNCIÓN: Exportar médicos
+  const handleExportarMedicos = () => {
+    if (medicos.length === 0) {
+      alert('No hay médicos para exportar')
+      return
+    }
+
+    // Mapear campos del sistema a nombres de columnas del Excel
+    const medicosFormateados = medicos.map(m => ({
+      nombre_completo: m.nombre,
+      especialidad: m.especialidad,
+      direccion: m.direccion,
+      telefono: m.telefono,
+      email: m.email || '',
+      hospital: m.clinica,
+      ciudad: m.municipio,
+      notas: m.referencia || m.especial || ''
+    }))
+
+    const resultado = exportarMedicosAExcel(medicosFormateados)
+    
+    if (resultado.success) {
+      alert(`✓ ${resultado.message}`)
+    } else {
+      alert(`✗ ${resultado.message}`)
+    }
+  }
+
+  // ✅ NUEVA FUNCIÓN: Descargar plantilla
+  const handleDescargarPlantilla = () => {
+    const resultado = exportarPlantillaMedicos()
+    
+    if (resultado.success) {
+      alert('✓ Plantilla descargada correctamente')
+    } else {
+      alert(`✗ ${resultado.message}`)
+    }
+  }
+
   const resetForm = () => {
     setFormData({
       nombre: '',
@@ -212,6 +252,27 @@ export default function GestionMedicos() {
             </p>
           </div>
           <div className="header-actions">
+            {/* ✅ NUEVO: Botón Exportar */}
+            <button 
+              onClick={handleExportarMedicos} 
+              className="btn btn-success"
+              disabled={loading || medicos.length === 0}
+              title="Exportar todos los médicos a Excel"
+            >
+              <Download size={18} />
+              Exportar ({medicos.length})
+            </button>
+
+            {/* ✅ NUEVO: Botón Plantilla */}
+            <button 
+              onClick={handleDescargarPlantilla} 
+              className="btn btn-secondary"
+              title="Descargar plantilla vacía para importar"
+            >
+              <FileSpreadsheet size={18} />
+              Plantilla
+            </button>
+
             <button onClick={() => setShowImportModal(true)} className="btn btn-secondary">
               <Upload size={18} />
               Importar Excel

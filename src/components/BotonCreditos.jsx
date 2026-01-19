@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Info, X, Code, Mail, Phone, MessageCircle, Heart, Briefcase } from 'lucide-react'
 import './BotonCreditos.css'
 
-export default function BotonCreditos() {
+export default function BotonCreditos({ compact = false }) {
   const [showModal, setShowModal] = useState(false)
 
   const abrirWhatsApp = () => {
@@ -15,13 +15,14 @@ export default function BotonCreditos() {
 
   return (
     <>
-      {/* Botón Flotante */}
+      {/* Botón en Header */}
       <button 
-        className="btn-flotante-creditos"
+        className={compact ? "btn-header-creditos-compact" : "btn-header-creditos"}
         onClick={() => setShowModal(true)}
         title="Información del desarrollador"
       >
-        <Info size={20} />
+        <Info size={16} />
+        {!compact && "Mi Información"}
       </button>
 
       {/* Modal de Créditos */}
