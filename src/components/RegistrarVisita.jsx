@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { MapPin, CheckCircle, AlertCircle, X, Search } from 'lucide-react'
-import SignatureCanvas from 'react-signature-canvas'
+import { MapPin, CheckCircle, AlertCircle, X, Search, Edit3 } from 'lucide-react'
+import FirmaModal from './FirmaModal'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import './RegistrarVisita.css'
@@ -18,12 +18,13 @@ L.Icon.Default.mergeOptions({
 
 export default function RegistrarVisita({ onClose, onSuccess }) {
   const user = useAuthStore(state => state.user)
-  const sigCanvas = useRef(null)
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [gpsLoading, setGpsLoading] = useState(false)
+  const [showFirmaModal, setShowFirmaModal] = useState(false)
+  const [firmaDataUrl, setFirmaDataUrl] = useState(null)
   
   // Búsqueda de médicos
   const [busqueda, setBusqueda] = useState('')
@@ -94,7 +95,11 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
   }
 
   const limpiarFirma = () => {
-    sigCanvas.current.clear()
+    setFirmaDataUrl(null)
+  }
+
+  const handleSaveFirma = (dataUrl) => {
+    setFirmaDataUrl(dataUrl)
   }
 
   const handleSubmit = async (e) => {
@@ -115,21 +120,18 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
       return
     }
 
-    if (sigCanvas.current.isEmpty()) {
+    if (!firmaDataUrl) {
       setError('Debes obtener la firma del cliente')
       setLoading(false)
       return
     }
 
     try {
-      // Convertir firma a base64
-      const firmaBase64 = sigCanvas.current.toDataURL('image/png')
-      
       // Subir firma a Supabase Storage
       const fileName = `firma_${user.id}_${Date.now()}.png`
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('firmas')
-        .upload(fileName, dataURLtoBlob(firmaBase64), {
+        .upload(fileName, dataURLtoBlob(firmaDataUrl), {
           contentType: 'image/png'
         })
 
@@ -318,21 +320,38 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
             {/* Firma */}
             <div className="form-section">
               <h3>Firma del Cliente</h3>
-              <div className="signature-container">
-                <SignatureCanvas
-                  ref={sigCanvas}
-                  canvasProps={{
-                    className: 'signature-canvas'
-                  }}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={limpiarFirma}
-                className="btn btn-secondary btn-small"
-              >
-                Limpiar Firma
-              </button>
+              
+              {firmaDataUrl ? (
+                <div className="firma-preview-container">
+                  <img src={firmaDataUrl} alt="Firma" className="firma-preview" />
+                  <div className="firma-actions">
+                    <button
+                      type="button"
+                      onClick={() => setShowFirmaModal(true)}
+                      className="btn btn-secondary btn-small"
+                    >
+                      <Edit3 size={16} />
+                      Editar Firma
+                    </button>
+                    <button
+                      type="button"
+                      onClick={limpiarFirma}
+                      className="btn btn-secondary btn-small"
+                    >
+                      Limpiar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowFirmaModal(true)}
+                  className="btn btn-primary"
+                >
+                  <Edit3 size={18} />
+                  Capturar Firma
+                </button>
+              )}
             </div>
 
             {error && (
@@ -361,6 +380,14 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
           </form>
         )}
       </div>
+
+      {/* Modal de Firma */}
+      <FirmaModal
+        isOpen={showFirmaModal}
+        onClose={() => setShowFirmaModal(false)}
+        onSave={handleSaveFirma}
+        titulo="Firma del Cliente"
+      />
     </div>
   )
 }

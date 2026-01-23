@@ -146,6 +146,31 @@
   cursor: crosshair;
 }
 
+.firma-preview-container {
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #f0fdf4;
+}
+
+.firma-preview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  background-color: white;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.firma-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.firma-actions button {
+  flex: 1;
+}
+
 .btn-small {
   padding: 8px 16px;
   font-size: 13px;

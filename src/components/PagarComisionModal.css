@@ -69,30 +69,38 @@
   margin-bottom: 20px;
 }
 
-.firma-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.firma-header label {
+.firma-section label {
   font-size: 14px;
   font-weight: 500;
   color: #374151;
+  display: block;
+  margin-bottom: 12px;
 }
 
-.firma-canvas-container {
-  border: 2px solid #e5e7eb;
+.firma-preview-wrapper {
+  border: 2px solid #10b981;
   border-radius: 8px;
-  background: white;
-  overflow: hidden;
+  padding: 12px;
+  background-color: #f0fdf4;
 }
 
-.firma-canvas {
-  width: 100% !important;
-  height: 200px !important;
-  cursor: crosshair;
+.firma-preview-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  background-color: white;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.firma-preview-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.firma-preview-actions button {
+  flex: 1;
 }
 
 .firma-hint {
@@ -109,7 +117,7 @@
     margin: 12px;
   }
 
-  .firma-canvas {
-    height: 150px !important;
+  .firma-preview-img {
+    max-height: 150px;
   }
 }

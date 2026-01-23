@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { Search, Stethoscope, MapPin, Phone, Building } from 'lucide-react'
+import { Search, Stethoscope, MapPin, Phone, Building, Plus, Edit2, Trash2, X, Save } from 'lucide-react'
 import './MedicosVisitadora.css'
 
 export default function MedicosVisitadora() {
@@ -8,6 +8,19 @@ export default function MedicosVisitadora() {
   const [medicosFiltrados, setMedicosFiltrados] = useState([])
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [editando, setEditando] = useState(null)
+  const [guardando, setGuardando] = useState(false)
+  
+  const [formData, setFormData] = useState({
+    nombre: '',
+    clinica: '',
+    especialidad: '',
+    telefono: '',
+    municipio: '',
+    direccion: '',
+    referencia: ''
+  })
 
   useEffect(() => {
     loadMedicos()
@@ -48,6 +61,100 @@ export default function MedicosVisitadora() {
     setMedicosFiltrados(filtrados)
   }
 
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!formData.nombre.trim()) {
+      alert('El nombre es obligatorio')
+      return
+    }
+
+    setGuardando(true)
+
+    try {
+      if (editando) {
+        const { error } = await supabase
+          .from('medicos')
+          .update(formData)
+          .eq('id', editando)
+
+        if (error) throw error
+        alert('✅ Médico actualizado correctamente')
+      } else {
+        const { error } = await supabase
+          .from('medicos')
+          .insert([{ ...formData, activo: true }])
+
+        if (error) throw error
+        alert('✅ Médico agregado correctamente')
+      }
+
+      setShowModal(false)
+      resetForm()
+      loadMedicos()
+    } catch (error) {
+      alert('Error: ' + error.message)
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const handleEditar = (medico) => {
+    setEditando(medico.id)
+    setFormData({
+      nombre: medico.nombre || '',
+      clinica: medico.clinica || '',
+      especialidad: medico.especialidad || '',
+      telefono: medico.telefono || '',
+      municipio: medico.municipio || '',
+      direccion: medico.direccion || '',
+      referencia: medico.referencia || ''
+    })
+    setShowModal(true)
+  }
+
+  const handleEliminar = async (id, nombre) => {
+    if (!confirm(`¿Estás seguro de eliminar a ${nombre}?`)) return
+
+    try {
+      const { error } = await supabase
+        .from('medicos')
+        .update({ activo: false })
+        .eq('id', id)
+
+      if (error) throw error
+      alert('✅ Médico eliminado correctamente')
+      loadMedicos()
+    } catch (error) {
+      alert('Error: ' + error.message)
+    }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      nombre: '',
+      clinica: '',
+      especialidad: '',
+      telefono: '',
+      municipio: '',
+      direccion: '',
+      referencia: ''
+    })
+    setEditando(null)
+  }
+
+  const handleNuevo = () => {
+    resetForm()
+    setShowModal(true)
+  }
+
   if (loading) {
     return (
       <div className="card">
@@ -68,6 +175,11 @@ export default function MedicosVisitadora() {
               {medicosFiltrados.length} médicos registrados
             </p>
           </div>
+          
+          <button onClick={handleNuevo} className="btn btn-primary">
+            <Plus size={18} />
+            Agregar Médico
+          </button>
         </div>
 
         {/* Buscador */}
@@ -90,7 +202,7 @@ export default function MedicosVisitadora() {
             <div className="empty-state">
               <Stethoscope size={48} color="#9ca3af" />
               <h3>No se encontraron médicos</h3>
-              <p>Intenta ajustar tu búsqueda</p>
+              <p>Intenta ajustar tu búsqueda o agrega un nuevo médico</p>
             </div>
           ) : (
             medicosFiltrados.map((medico) => (
@@ -143,11 +255,149 @@ export default function MedicosVisitadora() {
                     </div>
                   )}
                 </div>
+
+                {/* Botones de acción */}
+                <div className="medico-actions">
+                  <button
+                    onClick={() => handleEditar(medico)}
+                    className="btn-icon btn-edit"
+                    title="Editar médico"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleEliminar(medico.id, medico.nombre)}
+                    className="btn-icon btn-delete"
+                    title="Eliminar médico"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             ))
           )}
         </div>
       </div>
+
+      {/* Modal de agregar/editar */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-medico">
+            <div className="modal-header">
+              <h2>{editando ? 'Editar Médico' : 'Agregar Médico'}</h2>
+              <button onClick={() => { setShowModal(false); resetForm(); }} className="btn-close">
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="medico-form">
+              <div className="form-group">
+                <label>Nombre del Médico *</label>
+                <input
+                  type="text"
+                  name="nombre"
+                  className="input"
+                  placeholder="Ej: Dr. Juan Pérez"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Especialidad</label>
+                <input
+                  type="text"
+                  name="especialidad"
+                  className="input"
+                  placeholder="Ej: Cardiología"
+                  value={formData.especialidad}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Clínica/Hospital/Farmacia</label>
+                <input
+                  type="text"
+                  name="clinica"
+                  className="input"
+                  placeholder="Ej: Hospital Roosevelt"
+                  value={formData.clinica}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Municipio</label>
+                <input
+                  type="text"
+                  name="municipio"
+                  className="input"
+                  placeholder="Ej: Guatemala"
+                  value={formData.municipio}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Teléfono</label>
+                <input
+                  type="tel"
+                  name="telefono"
+                  className="input"
+                  placeholder="Ej: 5555-5555"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Dirección Completa</label>
+                <textarea
+                  name="direccion"
+                  className="input"
+                  rows="2"
+                  placeholder="Dirección exacta del consultorio..."
+                  value={formData.direccion}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Referencia</label>
+                <textarea
+                  name="referencia"
+                  className="input"
+                  rows="2"
+                  placeholder="Referencias adicionales para llegar..."
+                  value={formData.referencia}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-actions">
+                <button
+                  type="button"
+                  onClick={() => { setShowModal(false); resetForm(); }}
+                  className="btn btn-secondary"
+                  disabled={guardando}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-success"
+                  disabled={guardando}
+                >
+                  <Save size={18} />
+                  {guardando ? 'Guardando...' : (editando ? 'Actualizar' : 'Guardar')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

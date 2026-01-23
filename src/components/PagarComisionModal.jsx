@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
 import { X, CheckCircle, Edit3 } from 'lucide-react'
-import SignatureCanvas from 'react-signature-canvas'
+import FirmaModal from './FirmaModal'
 import './PagarComisionModal.css'
 
 export default function PagarComisionModal({ comision, onClose, onPagoExitoso }) {
@@ -10,10 +10,15 @@ export default function PagarComisionModal({ comision, onClose, onPagoExitoso })
   const [nombreRecibe, setNombreRecibe] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
-  const sigCanvas = useRef(null)
+  const [showFirmaModal, setShowFirmaModal] = useState(false)
+  const [firmaDataUrl, setFirmaDataUrl] = useState(null)
 
   const limpiarFirma = () => {
-    sigCanvas.current?.clear()
+    setFirmaDataUrl(null)
+  }
+
+  const handleSaveFirma = (dataUrl) => {
+    setFirmaDataUrl(dataUrl)
   }
 
   const handlePagar = async () => {
@@ -22,7 +27,7 @@ export default function PagarComisionModal({ comision, onClose, onPagoExitoso })
       return
     }
 
-    if (sigCanvas.current?.isEmpty()) {
+    if (!firmaDataUrl) {
       setError('Por favor captura la firma de quien recibe')
       return
     }
@@ -31,10 +36,7 @@ export default function PagarComisionModal({ comision, onClose, onPagoExitoso })
     setError('')
 
     try {
-      // 1. Obtener firma como base64
-      const firmaDataUrl = sigCanvas.current.toDataURL('image/png')
-      
-      // 2. Convertir a blob
+      // 1. Convertir a blob
       const blob = await fetch(firmaDataUrl).then(r => r.blob())
       
       // 3. Subir a Supabase Storage
@@ -154,26 +156,41 @@ export default function PagarComisionModal({ comision, onClose, onPagoExitoso })
 
           {/* Firma */}
           <div className="firma-section">
-            <div className="firma-header">
-              <label>Firma de quien recibe *</label>
+            <label>Firma de quien recibe *</label>
+            
+            {firmaDataUrl ? (
+              <div className="firma-preview-wrapper">
+                <img src={firmaDataUrl} alt="Firma" className="firma-preview-img" />
+                <div className="firma-preview-actions">
+                  <button 
+                    onClick={() => setShowFirmaModal(true)}
+                    className="btn btn-secondary btn-small"
+                    type="button"
+                  >
+                    <Edit3 size={14} />
+                    Editar
+                  </button>
+                  <button 
+                    onClick={limpiarFirma}
+                    className="btn btn-secondary btn-small"
+                    type="button"
+                  >
+                    Limpiar
+                  </button>
+                </div>
+              </div>
+            ) : (
               <button 
-                onClick={limpiarFirma}
-                className="btn btn-secondary btn-small"
+                onClick={() => setShowFirmaModal(true)}
+                className="btn btn-primary"
                 type="button"
               >
-                <Edit3 size={14} />
-                Limpiar
+                <Edit3 size={16} />
+                Capturar Firma
               </button>
-            </div>
-            <div className="firma-canvas-container">
-              <SignatureCanvas
-                ref={sigCanvas}
-                canvasProps={{
-                  className: 'firma-canvas'
-                }}
-              />
-            </div>
-            <p className="firma-hint">Dibuja la firma en el recuadro</p>
+            )}
+            
+            <p className="firma-hint">La firma confirma el recibo de la comisión</p>
           </div>
 
           {error && (
@@ -201,6 +218,14 @@ export default function PagarComisionModal({ comision, onClose, onPagoExitoso })
           </button>
         </div>
       </div>
+
+      {/* Modal de Firma */}
+      <FirmaModal
+        isOpen={showFirmaModal}
+        onClose={() => setShowFirmaModal(false)}
+        onSave={handleSaveFirma}
+        titulo="Firma de quien recibe"
+      />
     </div>
   )
 }
