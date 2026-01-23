@@ -1,20 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { MapPin, CheckCircle, AlertCircle, X, Search, Edit3 } from 'lucide-react'
+import { MapPin, CheckCircle, AlertCircle, X, Search, Edit3, ChevronDown, ChevronUp, Navigation, ExternalLink } from 'lucide-react'
 import FirmaModal from './FirmaModal'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
 import './RegistrarVisita.css'
-
-// Fix para los iconos de Leaflet
-import L from 'leaflet'
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-})
 
 export default function RegistrarVisita({ onClose, onSuccess }) {
   const user = useAuthStore(state => state.user)
@@ -22,9 +11,10 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const [gpsLoading, setGpsLoading] = useState(false)
   const [showFirmaModal, setShowFirmaModal] = useState(false)
   const [firmaDataUrl, setFirmaDataUrl] = useState(null)
+  const [showUbicacion, setShowUbicacion] = useState(false)
+  const [capturandoGPS, setCapturandoGPS] = useState(false)
   
   // Búsqueda de médicos
   const [busqueda, setBusqueda] = useState('')
@@ -64,12 +54,12 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
   }
 
   const obtenerUbicacion = () => {
-    setGpsLoading(true)
+    setCapturandoGPS(true)
     setError('')
 
     if (!navigator.geolocation) {
       setError('Tu navegador no soporta geolocalización')
-      setGpsLoading(false)
+      setCapturandoGPS(false)
       return
     }
 
@@ -80,11 +70,11 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
           latitud: position.coords.latitude,
           longitud: position.coords.longitude
         })
-        setGpsLoading(false)
+        setCapturandoGPS(false)
       },
       (error) => {
         setError('Error al obtener ubicación: ' + error.message)
-        setGpsLoading(false)
+        setCapturandoGPS(false)
       },
       {
         enableHighAccuracy: true,
@@ -92,6 +82,19 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
         maximumAge: 0
       }
     )
+  }
+
+  const limpiarUbicacion = () => {
+    setFormData({
+      ...formData,
+      latitud: null,
+      longitud: null
+    })
+  }
+
+  const abrirEnGoogleMaps = (lat, lng) => {
+    const url = `https://www.google.com/maps?q=${lat},${lng}`
+    window.open(url, '_blank')
   }
 
   const limpiarFirma = () => {
@@ -265,41 +268,74 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
               </div>
             </div>
 
-            {/* Ubicación GPS */}
-            <div className="form-section">
-              <h3>
-                <MapPin size={20} />
-                Ubicación GPS
-              </h3>
-              
+            {/* Ubicación GPS - Desplegable */}
+            <div className="form-section ubicacion-visita-section">
               <button
                 type="button"
-                onClick={obtenerUbicacion}
-                className="btn btn-secondary"
-                disabled={gpsLoading}
+                className="ubicacion-visita-toggle"
+                onClick={() => setShowUbicacion(!showUbicacion)}
               >
-                <MapPin size={18} />
-                {gpsLoading ? 'Obteniendo ubicación...' : 'Capturar Ubicación'}
+                <MapPin size={20} />
+                <span>Ubicación GPS</span>
+                {showUbicacion ? (
+                  <ChevronUp size={20} />
+                ) : (
+                  <ChevronDown size={20} />
+                )}
               </button>
 
-              {formData.latitud && formData.longitud && (
-                <div className="gps-info">
-                  <p className="success-text">
-                    <CheckCircle size={16} />
-                    Ubicación capturada
+              {showUbicacion && (
+                <div className="ubicacion-visita-content">
+                  <p className="ubicacion-visita-hint">
+                    📍 Captura tu ubicación actual en la visita
                   </p>
-                  <div className="map-preview">
-                    <MapContainer
-                      center={[formData.latitud, formData.longitud]}
-                      zoom={15}
-                      style={{ height: '200px', width: '100%' }}
+
+                  {formData.latitud && formData.longitud ? (
+                    <div className="ubicacion-visita-preview">
+                      <div className="ubicacion-capturada">
+                        <CheckCircle size={20} color="#10b981" />
+                        <span>Ubicación capturada</span>
+                      </div>
+                      <div className="coordenadas-visita">
+                        <div className="coord-visita-item">
+                          <span className="coord-visita-label">Latitud:</span>
+                          <span className="coord-visita-value">{formData.latitud.toFixed(6)}</span>
+                        </div>
+                        <div className="coord-visita-item">
+                          <span className="coord-visita-label">Longitud:</span>
+                          <span className="coord-visita-value">{formData.longitud.toFixed(6)}</span>
+                        </div>
+                      </div>
+                      <div className="ubicacion-visita-buttons">
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-small"
+                          onClick={() => abrirEnGoogleMaps(formData.latitud, formData.longitud)}
+                        >
+                          <ExternalLink size={16} />
+                          Ver en Mapa
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-small"
+                          onClick={limpiarUbicacion}
+                        >
+                          <X size={16} />
+                          Limpiar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-capturar"
+                      onClick={obtenerUbicacion}
+                      disabled={capturandoGPS}
                     >
-                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                      <Marker position={[formData.latitud, formData.longitud]}>
-                        <Popup>Tu ubicación</Popup>
-                      </Marker>
-                    </MapContainer>
-                  </div>
+                      <Navigation size={18} />
+                      {capturandoGPS ? 'Obteniendo ubicación...' : 'Capturar Mi Ubicación'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>

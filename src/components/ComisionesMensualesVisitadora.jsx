@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { DollarSign, CheckCircle, Calendar, Search, Clock, TrendingUp } from 'lucide-react'
+import { DollarSign, CheckCircle, Calendar, Search, Clock, TrendingUp, Settings, X } from 'lucide-react'
 import PagarComisionModal from './PagarComisionModal'
+import ConfigurarComisionesMedicoModal from './ConfigurarComisionesMedicoModal'
 import './ComisionesMensuales.css'
 
 export default function ComisionesMensualesVisitadora() {
@@ -13,6 +14,9 @@ export default function ComisionesMensualesVisitadora() {
   const [comisionSeleccionada, setComisionSeleccionada] = useState(null)
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState('todas') // todas, pendientes, pagadas
+  const [showConfigModal, setShowConfigModal] = useState(false)
+  const [medicoParaConfigurar, setMedicoParaConfigurar] = useState(null)
+  const [medicos, setMedicos] = useState([])
   const [stats, setStats] = useState({
     totalPendiente: 0,
     totalPagado: 0,
@@ -22,6 +26,7 @@ export default function ComisionesMensualesVisitadora() {
 
   useEffect(() => {
     loadComisiones()
+    loadMedicos()
   }, [user])
 
   useEffect(() => {
@@ -42,6 +47,18 @@ export default function ComisionesMensualesVisitadora() {
     }
     
     setLoading(false)
+  }
+
+  const loadMedicos = async () => {
+    const { data } = await supabase
+      .from('medicos')
+      .select('id, nombre, clinica')
+      .eq('activo', true)
+      .order('nombre')
+
+    if (data) {
+      setMedicos(data)
+    }
   }
 
   const calcularStats = () => {
@@ -141,6 +158,13 @@ export default function ComisionesMensualesVisitadora() {
               Diciembre 2024
             </p>
           </div>
+          <button 
+            onClick={() => setShowConfigModal(true)}
+            className="btn btn-secondary"
+          >
+            <Settings size={18} />
+            Configurar Comisiones
+          </button>
         </div>
 
         {/* Filtros */}
@@ -281,6 +305,60 @@ export default function ComisionesMensualesVisitadora() {
           comision={comisionSeleccionada}
           onClose={() => setShowPagarModal(false)}
           onPagoExitoso={handlePagoExitoso}
+        />
+      )}
+
+      {/* Modal Selector de Médico */}
+      {showConfigModal && !medicoParaConfigurar && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2>Seleccionar Médico</h2>
+              <button onClick={() => setShowConfigModal(false)} className="btn-close">
+                <X size={24} />
+              </button>
+            </div>
+            <div style={{ padding: '24px' }}>
+              <p style={{ marginBottom: '16px', color: '#6b7280' }}>
+                Selecciona el médico para configurar sus comisiones:
+              </p>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+                Médico:
+              </label>
+              <select
+                className="input"
+                style={{ marginBottom: '20px' }}
+                onChange={(e) => {
+                  const medico = medicos.find(m => m.id === e.target.value)
+                  if (medico) {
+                    setMedicoParaConfigurar(medico)
+                  }
+                }}
+                defaultValue=""
+              >
+                <option value="">-- Selecciona un médico --</option>
+                {medicos.map((medico) => (
+                  <option key={medico.id} value={medico.id}>
+                    {medico.nombre} {medico.clinica ? `- ${medico.clinica}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Configurar Comisiones */}
+      {showConfigModal && medicoParaConfigurar && (
+        <ConfigurarComisionesMedicoModal
+          medico={medicoParaConfigurar}
+          onClose={() => {
+            setShowConfigModal(false)
+            setMedicoParaConfigurar(null)
+          }}
+          onSave={() => {
+            loadComisiones()
+          }}
         />
       )}
     </div>

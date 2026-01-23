@@ -287,3 +287,208 @@
     padding: 16px;
   }
 }
+/* Ubicación GPS - Sección desplegable en tarjeta */
+.ubicacion-section {
+  margin-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 12px;
+}
+
+.ubicacion-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.ubicacion-toggle:hover {
+  background: #f3f4f6;
+  border-color: #3b82f6;
+}
+
+.ubicacion-toggle span {
+  flex: 1;
+  text-align: left;
+}
+
+.ubicacion-content {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f0f9ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+}
+
+.coordenadas-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.coord-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.coord-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.coord-value {
+  font-family: 'Courier New', monospace;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.btn-google-maps {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-google-maps:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Ubicación GPS - Formulario en modal */
+.ubicacion-form-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.ubicacion-form-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.ubicacion-form-toggle:hover {
+  background: #f3f4f6;
+}
+
+.ubicacion-form-toggle span {
+  flex: 1;
+  text-align: left;
+}
+
+.ubicacion-form-content {
+  padding: 16px;
+  background: white;
+}
+
+.ubicacion-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+  padding: 10px;
+  background: #f0f9ff;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
+}
+
+.ubicacion-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coordenadas-display {
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.coord-display-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.coord-display-item:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coord-display-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.coord-display-value {
+  font-family: 'Courier New', monospace;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.ubicacion-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.ubicacion-buttons button {
+  flex: 1;
+}
+
+.btn-capturar-gps {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+.btn-small {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* Responsive para ubicación */
+@media (max-width: 640px) {
+  .ubicacion-buttons {
+    flex-direction: column;
+  }
+
+  .ubicacion-buttons button {
+    width: 100%;
+  }
+}

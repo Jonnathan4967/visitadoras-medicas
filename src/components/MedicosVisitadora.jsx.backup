@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { Search, Stethoscope, MapPin, Phone, Building, Plus, Edit2, Trash2, X, Save, ChevronDown, ChevronUp, Navigation, ExternalLink } from 'lucide-react'
+import { Search, Stethoscope, MapPin, Phone, Building, Plus, Edit2, Trash2, X, Save } from 'lucide-react'
 import './MedicosVisitadora.css'
 
 export default function MedicosVisitadora() {
@@ -11,9 +11,6 @@ export default function MedicosVisitadora() {
   const [showModal, setShowModal] = useState(false)
   const [editando, setEditando] = useState(null)
   const [guardando, setGuardando] = useState(false)
-  const [showUbicacionForm, setShowUbicacionForm] = useState(false)
-  const [capturandoGPS, setCapturandoGPS] = useState(false)
-  const [ubicacionesExpandidas, setUbicacionesExpandidas] = useState({})
   
   const [formData, setFormData] = useState({
     nombre: '',
@@ -22,9 +19,7 @@ export default function MedicosVisitadora() {
     telefono: '',
     municipio: '',
     direccion: '',
-    referencia: '',
-    latitud: null,
-    longitud: null
+    referencia: ''
   })
 
   useEffect(() => {
@@ -120,62 +115,9 @@ export default function MedicosVisitadora() {
       telefono: medico.telefono || '',
       municipio: medico.municipio || '',
       direccion: medico.direccion || '',
-      referencia: medico.referencia || '',
-      latitud: medico.latitud || null,
-      longitud: medico.longitud || null
+      referencia: medico.referencia || ''
     })
-    setShowUbicacionForm(medico.latitud && medico.longitud)
     setShowModal(true)
-  }
-
-  const capturarUbicacion = () => {
-    setCapturandoGPS(true)
-    
-    if (!navigator.geolocation) {
-      alert('Tu navegador no soporta geolocalización')
-      setCapturandoGPS(false)
-      return
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData({
-          ...formData,
-          latitud: position.coords.latitude,
-          longitud: position.coords.longitude
-        })
-        setCapturandoGPS(false)
-      },
-      (error) => {
-        alert('Error al obtener ubicación: ' + error.message)
-        setCapturandoGPS(false)
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    )
-  }
-
-  const limpiarUbicacion = () => {
-    setFormData({
-      ...formData,
-      latitud: null,
-      longitud: null
-    })
-  }
-
-  const toggleUbicacion = (medicoId) => {
-    setUbicacionesExpandidas(prev => ({
-      ...prev,
-      [medicoId]: !prev[medicoId]
-    }))
-  }
-
-  const abrirEnGoogleMaps = (lat, lng) => {
-    const url = `https://www.google.com/maps?q=${lat},${lng}`
-    window.open(url, '_blank')
   }
 
   const handleEliminar = async (id, nombre) => {
@@ -203,12 +145,9 @@ export default function MedicosVisitadora() {
       telefono: '',
       municipio: '',
       direccion: '',
-      referencia: '',
-      latitud: null,
-      longitud: null
+      referencia: ''
     })
     setEditando(null)
-    setShowUbicacionForm(false)
   }
 
   const handleNuevo = () => {
@@ -316,46 +255,6 @@ export default function MedicosVisitadora() {
                     </div>
                   )}
                 </div>
-
-                {/* Ubicación GPS - Sección desplegable */}
-                {medico.latitud && medico.longitud && (
-                  <div className="ubicacion-section">
-                    <button
-                      className="ubicacion-toggle"
-                      onClick={() => toggleUbicacion(medico.id)}
-                    >
-                      <MapPin size={16} />
-                      <span>Ubicación GPS</span>
-                      {ubicacionesExpandidas[medico.id] ? (
-                        <ChevronUp size={16} />
-                      ) : (
-                        <ChevronDown size={16} />
-                      )}
-                    </button>
-
-                    {ubicacionesExpandidas[medico.id] && (
-                      <div className="ubicacion-content">
-                        <div className="coordenadas-info">
-                          <div className="coord-item">
-                            <span className="coord-label">Latitud:</span>
-                            <span className="coord-value">{medico.latitud.toFixed(6)}</span>
-                          </div>
-                          <div className="coord-item">
-                            <span className="coord-label">Longitud:</span>
-                            <span className="coord-value">{medico.longitud.toFixed(6)}</span>
-                          </div>
-                        </div>
-                        <button
-                          className="btn-google-maps"
-                          onClick={() => abrirEnGoogleMaps(medico.latitud, medico.longitud)}
-                        >
-                          <ExternalLink size={16} />
-                          Abrir en Google Maps
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Botones de acción */}
                 <div className="medico-actions">
@@ -475,74 +374,6 @@ export default function MedicosVisitadora() {
                   value={formData.referencia}
                   onChange={handleChange}
                 />
-              </div>
-
-              {/* Sección de Ubicación GPS - Desplegable */}
-              <div className="form-group ubicacion-form-section">
-                <button
-                  type="button"
-                  className="ubicacion-form-toggle"
-                  onClick={() => setShowUbicacionForm(!showUbicacionForm)}
-                >
-                  <MapPin size={18} />
-                  <span>Ubicación GPS (Opcional)</span>
-                  {showUbicacionForm ? (
-                    <ChevronUp size={18} />
-                  ) : (
-                    <ChevronDown size={18} />
-                  )}
-                </button>
-
-                {showUbicacionForm && (
-                  <div className="ubicacion-form-content">
-                    <p className="ubicacion-hint">
-                      Guarda la ubicación exacta del consultorio para facilitar la navegación
-                    </p>
-
-                    {formData.latitud && formData.longitud ? (
-                      <div className="ubicacion-preview">
-                        <div className="coordenadas-display">
-                          <div className="coord-display-item">
-                            <span className="coord-display-label">Latitud:</span>
-                            <span className="coord-display-value">{formData.latitud.toFixed(6)}</span>
-                          </div>
-                          <div className="coord-display-item">
-                            <span className="coord-display-label">Longitud:</span>
-                            <span className="coord-display-value">{formData.longitud.toFixed(6)}</span>
-                          </div>
-                        </div>
-                        <div className="ubicacion-buttons">
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-small"
-                            onClick={() => abrirEnGoogleMaps(formData.latitud, formData.longitud)}
-                          >
-                            <ExternalLink size={14} />
-                            Ver en Mapa
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-secondary btn-small"
-                            onClick={limpiarUbicacion}
-                          >
-                            <X size={14} />
-                            Limpiar
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-capturar-gps"
-                        onClick={capturarUbicacion}
-                        disabled={capturandoGPS}
-                      >
-                        <Navigation size={18} />
-                        {capturandoGPS ? 'Obteniendo ubicación...' : 'Capturar Mi Ubicación'}
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
 
               <div className="form-actions">

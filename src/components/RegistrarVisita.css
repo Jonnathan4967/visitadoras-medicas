@@ -336,3 +336,125 @@
     width: 100%;
   }
 }
+/* Ubicación GPS en Visita - Desplegable */
+.ubicacion-visita-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.ubicacion-visita-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.ubicacion-visita-toggle:hover {
+  background: #f3f4f6;
+}
+
+.ubicacion-visita-toggle span {
+  flex: 1;
+  text-align: left;
+}
+
+.ubicacion-visita-content {
+  padding: 16px;
+  background: white;
+}
+
+.ubicacion-visita-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+  padding: 10px;
+  background: #f0f9ff;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
+}
+
+.ubicacion-visita-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ubicacion-capturada {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: #f0fdf4;
+  border: 1px solid #10b981;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #059669;
+}
+
+.coordenadas-visita {
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.coord-visita-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.coord-visita-item:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coord-visita-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.coord-visita-value {
+  font-family: 'Courier New', monospace;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.ubicacion-visita-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.ubicacion-visita-buttons button {
+  flex: 1;
+}
+
+.btn-capturar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .ubicacion-visita-buttons {
+    flex-direction: column;
+  }
+  
+  .ubicacion-visita-buttons button {
+    width: 100%;
+  }
+}

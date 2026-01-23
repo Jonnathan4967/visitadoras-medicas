@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { DollarSign, Plus, X, Save, Calendar, CheckCircle, Eye, UserPlus } from 'lucide-react'
+import { DollarSign, Plus, X, Save, Calendar, CheckCircle, Eye, UserPlus, Settings } from 'lucide-react'
+import ConfigurarComisionesMedicoModal from './ConfigurarComisionesMedicoModal'
 import './ComisionesMedicos.css'
 
 export default function ComisionesMedicos() {
@@ -13,6 +14,8 @@ export default function ComisionesMedicos() {
   const [showModal, setShowModal] = useState(false)
   const [showAsignarModal, setShowAsignarModal] = useState(false)
   const [showFirmaModal, setShowFirmaModal] = useState(false)
+  const [showConfigModal, setShowConfigModal] = useState(false)
+  const [medicoParaConfigurar, setMedicoParaConfigurar] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [comisionParaAsignar, setComisionParaAsignar] = useState(null)
   const [visitadoraSeleccionada, setVisitadoraSeleccionada] = useState('')
@@ -213,10 +216,19 @@ export default function ComisionesMedicos() {
               Registro y gestión de comisiones por referencias
             </p>
           </div>
-          <button onClick={() => setShowModal(true)} className="btn btn-primary">
-            <Plus size={18} />
-            Registrar Comisión
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button 
+              onClick={() => setShowConfigModal(true)} 
+              className="btn btn-secondary"
+            >
+              <Settings size={18} />
+              Configurar Comisiones
+            </button>
+            <button onClick={() => setShowModal(true)} className="btn btn-primary">
+              <Plus size={18} />
+              Registrar Comisión
+            </button>
+          </div>
         </div>
 
         {/* Estadísticas */}
@@ -572,6 +584,60 @@ export default function ComisionesMedicos() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal Seleccionar Médico para Configurar */}
+      {showConfigModal && !medicoParaConfigurar && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2>Seleccionar Médico</h2>
+              <button onClick={() => setShowConfigModal(false)} className="btn-close">
+                <X size={24} />
+              </button>
+            </div>
+            <div style={{ padding: '24px' }}>
+              <p style={{ marginBottom: '16px', color: '#6b7280' }}>
+                Selecciona el médico para configurar sus comisiones:
+              </p>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+                Médico:
+              </label>
+              <select
+                className="input"
+                style={{ marginBottom: '20px' }}
+                onChange={(e) => {
+                  const medico = medicos.find(m => m.id === e.target.value)
+                  if (medico) {
+                    setMedicoParaConfigurar(medico)
+                  }
+                }}
+                defaultValue=""
+              >
+                <option value="">-- Selecciona un médico --</option>
+                {medicos.map((medico) => (
+                  <option key={medico.id} value={medico.id}>
+                    {medico.nombre} {medico.clinica ? `- ${medico.clinica}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Configurar Comisiones */}
+      {showConfigModal && medicoParaConfigurar && (
+        <ConfigurarComisionesMedicoModal
+          medico={medicoParaConfigurar}
+          onClose={() => {
+            setShowConfigModal(false)
+            setMedicoParaConfigurar(null)
+          }}
+          onSave={() => {
+            loadComisiones()
+          }}
+        />
       )}
     </div>
   )
