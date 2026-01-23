@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { 
   X, User, MapPin, Phone, Mail, Calendar, TrendingUp, 
-  DollarSign, FileText, ChevronDown, ChevronUp, Save, Edit2, Search
+  DollarSign, FileText, ChevronDown, ChevronUp, Save, Edit2, Search, ExternalLink
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import './DetalleVisitadora.css';
 
 export default function DetalleVisitadora({ visitadoraId, onClose }) {
@@ -582,18 +580,27 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
                                   {visita.latitud && visita.longitud && (
                                     <div className="detail-row">
                                       <p><strong>Ubicación GPS:</strong></p>
-                                      <div className="map-container-mini">
-                                        <MapContainer
-                                          center={[visita.latitud, visita.longitud]}
-                                          zoom={13}
-                                          style={{ height: '150px', width: '100%' }}
-                                          scrollWheelZoom={false}
+                                      <div className="ubicacion-gps-admin">
+                                        <div className="coordenadas-admin">
+                                          <div className="coord-admin-item">
+                                            <span>Lat:</span>
+                                            <span>{visita.latitud.toFixed(6)}</span>
+                                          </div>
+                                          <div className="coord-admin-item">
+                                            <span>Lng:</span>
+                                            <span>{visita.longitud.toFixed(6)}</span>
+                                          </div>
+                                        </div>
+                                        <button
+                                          onClick={() => {
+                                            const url = `https://www.google.com/maps?q=${visita.latitud},${visita.longitud}`
+                                            window.open(url, '_blank')
+                                          }}
+                                          className="btn-maps-admin"
                                         >
-                                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                                          <Marker position={[visita.latitud, visita.longitud]}>
-                                            <Popup>{visita.nombre_cliente}</Popup>
-                                          </Marker>
-                                        </MapContainer>
+                                          <ExternalLink size={14} />
+                                          Ver en Maps
+                                        </button>
                                       </div>
                                     </div>
                                   )}

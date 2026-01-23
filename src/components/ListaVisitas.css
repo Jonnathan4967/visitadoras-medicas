@@ -365,3 +365,67 @@
     max-width: 100%;
   }
 }
+/* Ubicación GPS Simple - Sin Mapa */
+.ubicacion-gps-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coordenadas-display {
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.coord-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.coord-item:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coord-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.coord-value {
+  font-family: 'Courier New', monospace;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.btn-google-maps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-google-maps:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+@media (max-width: 640px) {
+  .coordenadas-display {
+    font-size: 13px;
+  }
+}

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
-import { ChevronDown, ChevronUp, MapPin, Calendar, FileText, Search, X } from 'lucide-react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
+import { ChevronDown, ChevronUp, MapPin, Calendar, FileText, Search, X, ExternalLink } from 'lucide-react'
 import './ListaVisitas.css'
 
 export default function ListaVisitas() {
@@ -302,17 +300,27 @@ export default function ListaVisitas() {
                       {visita.latitud && visita.longitud && (
                         <div className="detalle-section">
                           <h5>Ubicación GPS</h5>
-                          <div className="mapa-container">
-                            <MapContainer
-                              center={[visita.latitud, visita.longitud]}
-                              zoom={15}
-                              style={{ height: '200px', width: '100%', borderRadius: '8px' }}
+                          <div className="ubicacion-gps-simple">
+                            <div className="coordenadas-display">
+                              <div className="coord-item">
+                                <span className="coord-label">Latitud:</span>
+                                <span className="coord-value">{visita.latitud.toFixed(6)}</span>
+                              </div>
+                              <div className="coord-item">
+                                <span className="coord-label">Longitud:</span>
+                                <span className="coord-value">{visita.longitud.toFixed(6)}</span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const url = `https://www.google.com/maps?q=${visita.latitud},${visita.longitud}`
+                                window.open(url, '_blank')
+                              }}
+                              className="btn-google-maps"
                             >
-                              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                              <Marker position={[visita.latitud, visita.longitud]}>
-                                <Popup>{visita.nombre_cliente}</Popup>
-                              </Marker>
-                            </MapContainer>
+                              <ExternalLink size={16} />
+                              Abrir en Google Maps
+                            </button>
                           </div>
                         </div>
                       )}
