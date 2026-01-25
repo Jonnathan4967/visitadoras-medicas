@@ -103,3 +103,57 @@
     min-width: auto;
   }
 }
+
+/* Separador y botón secundario */
+.export-separator {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+.export-separator::before,
+.export-separator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.export-separator::before {
+  left: 0;
+}
+
+.export-separator::after {
+  right: 0;
+}
+
+.export-separator span {
+  background: white;
+  padding: 0 15px;
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.export-actions-secondary {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.export-actions-secondary .btn {
+  min-width: 200px;
+}
+
+@media (max-width: 640px) {
+  .export-actions-secondary {
+    flex-direction: column;
+  }
+  
+  .export-actions-secondary .btn {
+    width: 100%;
+  }
+}
