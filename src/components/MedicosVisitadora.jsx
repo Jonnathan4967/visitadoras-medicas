@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { Search, Stethoscope, MapPin, Phone, Building, Plus, Edit2, Trash2, X, Save, ChevronDown, ChevronUp, Navigation, ExternalLink, FileSpreadsheet } from 'lucide-react'
+import { Search, Stethoscope, MapPin, Phone, Building, Plus, Edit2, Trash2, X, Save, ChevronDown, ChevronUp, Navigation, ExternalLink, FileSpreadsheet, Clock } from 'lucide-react'
 import ExcelJS from 'exceljs'
 import './MedicosVisitadora.css'
 
@@ -24,6 +24,7 @@ export default function MedicosVisitadora() {
     municipio: '',
     direccion: '',
     referencia: '',
+    horario_atencion: '',
     latitud: null,
     longitud: null
   })
@@ -122,6 +123,7 @@ export default function MedicosVisitadora() {
       municipio: medico.municipio || '',
       direccion: medico.direccion || '',
       referencia: medico.referencia || '',
+      horario_atencion: medico.horario_atencion || '',
       latitud: medico.latitud || null,
       longitud: medico.longitud || null
     })
@@ -205,6 +207,7 @@ export default function MedicosVisitadora() {
       municipio: '',
       direccion: '',
       referencia: '',
+      horario_atencion: '',
       latitud: null,
       longitud: null
     })
@@ -223,7 +226,7 @@ export default function MedicosVisitadora() {
       const worksheet = workbook.addWorksheet('Médicos')
       
       // ENCABEZADO
-      worksheet.mergeCells('A1:I1')
+      worksheet.mergeCells('A1:J1')
       const titleCell = worksheet.getCell('A1')
       titleCell.value = 'BASE DE DATOS - MÉDICOS'
       titleCell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FFFFFFFF' } }
@@ -231,11 +234,11 @@ export default function MedicosVisitadora() {
       titleCell.alignment = { vertical: 'middle', horizontal: 'center' }
       worksheet.getRow(1).height = 30
       
-      worksheet.mergeCells('A2:I2')
+      worksheet.mergeCells('A2:J2')
       worksheet.getCell('A2').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } }
       worksheet.getRow(2).height = 8
       
-      worksheet.mergeCells('A3:I3')
+      worksheet.mergeCells('A3:J3')
       const fechaCell = worksheet.getCell('A3')
       fechaCell.value = `Fecha de exportación: ${new Date().toLocaleDateString('es-ES', { 
         year: 'numeric', month: 'long', day: 'numeric' 
@@ -245,7 +248,7 @@ export default function MedicosVisitadora() {
       fechaCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }
       worksheet.getRow(3).height = 20
       
-      worksheet.mergeCells('A4:I4')
+      worksheet.mergeCells('A4:J4')
       const totalCell = worksheet.getCell('A4')
       totalCell.value = `Total de médicos: ${medicos.length}`
       totalCell.font = { name: 'Arial', size: 11, bold: true }
@@ -255,19 +258,19 @@ export default function MedicosVisitadora() {
       
       // Bordes del encabezado
       for (let row = 1; row <= 4; row++) {
-        for (let col = 1; col <= 9; col++) {
+        for (let col = 1; col <= 10; col++) {
           const cell = worksheet.getCell(row, col)
           cell.border = {
             top: { style: row === 1 ? 'medium' : 'thin', color: { argb: 'FF3B82F6' } },
             bottom: { style: row === 4 ? 'medium' : 'thin', color: { argb: 'FF3B82F6' } },
             left: { style: col === 1 ? 'medium' : 'thin', color: { argb: 'FF3B82F6' } },
-            right: { style: col === 9 ? 'medium' : 'thin', color: { argb: 'FF3B82F6' } }
+            right: { style: col === 10 ? 'medium' : 'thin', color: { argb: 'FF3B82F6' } }
           }
         }
       }
       
       // ENCABEZADOS DE TABLA
-      const headers = ['Nombre', 'Clínica', 'Especialidad', 'Teléfono', 'Municipio', 'Dirección', 'Referencia', 'Latitud', 'Longitud']
+      const headers = ['Nombre', 'Clínica', 'Especialidad', 'Teléfono', 'Municipio', 'Dirección', 'Referencia', 'Horario de Atención', 'Latitud', 'Longitud']
       const headerRow = worksheet.getRow(6)
       headers.forEach((header, idx) => {
         const cell = headerRow.getCell(idx + 1)
@@ -296,11 +299,12 @@ export default function MedicosVisitadora() {
         row.getCell(5).value = medico.municipio || ''
         row.getCell(6).value = medico.direccion || ''
         row.getCell(7).value = medico.referencia || ''
-        row.getCell(8).value = medico.latitud || ''
-        row.getCell(9).value = medico.longitud || ''
+        row.getCell(8).value = medico.horario_atencion || ''
+        row.getCell(9).value = medico.latitud || ''
+        row.getCell(10).value = medico.longitud || ''
         
         // Aplicar estilos
-        for (let col = 1; col <= 9; col++) {
+        for (let col = 1; col <= 10; col++) {
           const cell = row.getCell(col)
           cell.font = { name: 'Arial', size: 10 }
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isEven ? 'FFFFFFFF' : 'FFF3F4F6' } }
@@ -322,8 +326,9 @@ export default function MedicosVisitadora() {
       worksheet.getColumn(5).width = 15  // Municipio
       worksheet.getColumn(6).width = 30  // Dirección
       worksheet.getColumn(7).width = 25  // Referencia
-      worksheet.getColumn(8).width = 12  // Latitud
-      worksheet.getColumn(9).width = 12  // Longitud
+      worksheet.getColumn(8).width = 25  // Horario de Atención
+      worksheet.getColumn(9).width = 12  // Latitud
+      worksheet.getColumn(10).width = 12  // Longitud
       
       // Generar archivo
       const buffer = await workbook.xlsx.writeBuffer()
@@ -452,6 +457,15 @@ export default function MedicosVisitadora() {
                     <div className="referencia">
                       <p className="referencia-label">Referencia:</p>
                       <p className="referencia-text">{medico.referencia}</p>
+                    </div>
+                  )}
+
+                  {medico.horario_atencion && (
+                    <div className="horario-atencion">
+                      <div className="detail-item">
+                        <Clock size={16} />
+                        <span>{medico.horario_atencion}</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -612,6 +626,18 @@ export default function MedicosVisitadora() {
                   rows="2"
                   placeholder="Referencias adicionales para llegar..."
                   value={formData.referencia}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Horario de Atención</label>
+                <input
+                  type="text"
+                  name="horario_atencion"
+                  className="input"
+                  placeholder="Ej: Lunes a Viernes 8:00 AM - 5:00 PM"
+                  value={formData.horario_atencion}
                   onChange={handleChange}
                 />
               </div>

@@ -492,3 +492,18 @@
     width: 100%;
   }
 }
+
+/* Horario de Atención */
+.horario-atencion {
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+.horario-atencion .detail-item {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.horario-atencion .detail-item svg {
+  color: #10b981;
+}
