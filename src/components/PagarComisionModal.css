@@ -1,0 +1,123 @@
+/* Modal Pagar Comisión */
+
+.modal-pagar-comision {
+  max-width: 600px;
+}
+
+.comision-info-pago {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.info-row.destacado {
+  border-top: 2px solid #e5e7eb;
+  margin-top: 8px;
+  padding-top: 12px;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.info-valor {
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.info-valor.total {
+  font-size: 20px;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Desglose */
+.desglose-comision {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.desglose-comision h4 {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.desglose-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+/* Firma Section */
+.firma-section {
+  margin-bottom: 20px;
+}
+
+.firma-section label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.firma-preview-wrapper {
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  padding: 12px;
+  background-color: #f0fdf4;
+}
+
+.firma-preview-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  background-color: white;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.firma-preview-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.firma-preview-actions button {
+  flex: 1;
+}
+
+.firma-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 8px 0 0 0;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-pagar-comision {
+    max-width: 100%;
+    margin: 12px;
+  }
+
+  .firma-preview-img {
+    max-height: 150px;
+  }
+}

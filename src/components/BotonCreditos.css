@@ -1,0 +1,361 @@
+/* Botón en Header */
+.btn-header-creditos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-header-creditos:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-header-creditos:active {
+  transform: translateY(0);
+}
+
+/* Botón Compacto (solo ícono) */
+.btn-header-creditos-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-header-creditos-compact:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-header-creditos-compact:active {
+  transform: translateY(0);
+}
+
+/* Modal de Créditos */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-creditos {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.btn-close-modal {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.btn-close-modal:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Header */
+.creditos-header {
+  text-align: center;
+  padding: 48px 32px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.creditos-header h2 {
+  font-size: 16px;
+  font-weight: 400;
+  margin: 0 0 8px 0;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.creditos-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+}
+
+.creditos-subtitle {
+  font-size: 18px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+/* Divider */
+.creditos-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    #e5e7eb,
+    transparent
+  );
+  margin: 24px 32px;
+}
+
+/* Info */
+.creditos-info {
+  padding: 0 32px 24px;
+}
+
+.creditos-info h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  color: #1f2937;
+  margin-bottom: 16px;
+}
+
+.creditos-info p {
+  color: #4b5563;
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+
+.tech-stack {
+  font-size: 14px;
+  color: #6b7280;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+/* Contacto */
+.creditos-contacto {
+  padding: 0 32px 32px;
+}
+
+.creditos-contacto h3 {
+  font-size: 18px;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+.contacto-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.contacto-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.contacto-item:hover {
+  background: white;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.contacto-whatsapp:hover {
+  border-color: #25d366;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.15);
+}
+
+.contacto-icon {
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.whatsapp-icon {
+  color: #25d366;
+}
+
+.contacto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.contacto-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contacto-value {
+  font-size: 15px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* Footer */
+.creditos-footer {
+  background: #f9fafb;
+  padding: 24px 32px;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.made-with {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.heart-icon {
+  color: #ef4444;
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.2); }
+  50% { transform: scale(1); }
+}
+
+.copyright {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .btn-header-creditos {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .btn-header-creditos svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .modal-creditos {
+    max-height: 95vh;
+    margin: 10px;
+  }
+
+  .creditos-header {
+    padding: 32px 20px 24px;
+  }
+
+  .creditos-header h1 {
+    font-size: 22px;
+  }
+
+  .creditos-header h2 {
+    font-size: 14px;
+  }
+
+  .creditos-subtitle {
+    font-size: 16px;
+  }
+
+  .creditos-info,
+  .creditos-contacto {
+    padding: 0 20px 20px;
+  }
+
+  .creditos-divider {
+    margin: 20px;
+  }
+
+  .contacto-item {
+    padding: 12px;
+  }
+
+  .contacto-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .creditos-footer {
+    padding: 20px;
+  }
+}

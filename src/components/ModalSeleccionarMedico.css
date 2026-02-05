@@ -1,0 +1,192 @@
+.modal-seleccionar-medico {
+  max-width: 600px;
+  max-height: 80vh;
+}
+
+.modal-description {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 20px 0;
+}
+
+/* Buscador */
+.search-container-modal {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.search-icon-modal {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input-modal {
+  width: 100%;
+  padding: 12px 40px 12px 44px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.2s;
+  background: white;
+}
+
+.search-input-modal:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.search-input-modal::placeholder {
+  color: #9ca3af;
+}
+
+.clear-search-modal {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+
+.clear-search-modal:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.resultados-count-modal {
+  font-size: 13px;
+  color: #059669;
+  margin: 0 0 12px 4px;
+  font-weight: 500;
+}
+
+/* Lista de médicos */
+.medicos-list-modal {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.medicos-list-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.medicos-list-modal::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+
+.medicos-list-modal::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.medicos-list-modal::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.medico-item-modal {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  margin-bottom: 8px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.medico-item-modal:hover {
+  border-color: #10b981;
+  background: #f0fdf4;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+}
+
+.medico-info-modal h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.medico-info-modal p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.medico-arrow-modal {
+  font-size: 20px;
+  color: #10b981;
+  font-weight: bold;
+  transition: transform 0.2s;
+}
+
+.medico-item-modal:hover .medico-arrow-modal {
+  transform: translateX(4px);
+}
+
+/* No resultados */
+.no-resultados-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.no-resultados-modal svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.no-resultados-modal p {
+  font-size: 18px;
+  font-weight: 500;
+  color: #6b7280;
+  margin: 0 0 8px 0;
+}
+
+.no-resultados-modal span {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modal-seleccionar-medico {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+    max-height: 100vh;
+  }
+
+  .medicos-list-modal {
+    max-height: calc(100vh - 250px);
+  }
+
+  .search-input-modal {
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+}

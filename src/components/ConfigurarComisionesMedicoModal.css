@@ -1,0 +1,314 @@
+.modal-configurar-comisiones {
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.medico-info-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.medico-info-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #065f46;
+  margin: 0 0 4px 0;
+}
+
+.medico-info-header p {
+  font-size: 14px;
+  color: #047857;
+  margin: 0;
+}
+
+/* Tabs */
+.comisiones-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+
+.tab-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.tab-button.active {
+  background: white;
+  color: #10b981;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.comisiones-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 20px 0;
+  padding: 12px;
+  background: #f0f9ff;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
+}
+
+.comision-config-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: all 0.2s;
+}
+
+.comision-config-card:hover {
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.comision-config-card h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.comision-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.input-group .input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.input-group .input:focus {
+  outline: none;
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.comision-calculada {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #065f46;
+}
+
+.comision-calculada strong {
+  color: #059669;
+  font-size: 16px;
+}
+
+.total-comisiones {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde047 100%);
+  border: 3px solid #f59e0b;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.total-comisiones h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #92400e;
+  margin: 0 0 8px 0;
+}
+
+.total-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: #b45309;
+  margin: 0;
+}
+
+/* Estilos para Comisión Directa */
+.comision-directa-card {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.comision-directa-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.input-large {
+  font-size: 18px;
+  font-weight: 500;
+  padding: 14px 16px;
+}
+
+.textarea-descripcion {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.comision-directa-preview {
+  background: #dbeafe;
+  border-color: #60a5fa;
+  margin-top: 12px;
+}
+
+.comision-directa-preview strong {
+  color: #1e40af;
+  font-size: 18px;
+}
+
+.comision-directa-info {
+  padding: 12px;
+  background: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: 4px;
+  margin-top: 16px;
+}
+
+.comision-directa-info p {
+  font-size: 13px;
+  color: #92400e;
+  margin: 0;
+}
+
+.error-message {
+  padding: 12px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  color: #991b1b;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.footer-actions-right {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-danger {
+  padding: 10px 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modal-configurar-comisiones {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .comision-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .comisiones-tabs {
+    flex-direction: column;
+  }
+
+  .tab-button {
+    width: 100%;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .footer-actions-right {
+    width: 100%;
+    flex-direction: column-reverse;
+  }
+
+  .footer-actions-right button,
+  .btn-danger {
+    width: 100%;
+  }
+
+  .total-amount {
+    font-size: 24px;
+  }
+}

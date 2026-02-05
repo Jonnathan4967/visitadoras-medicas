@@ -1,0 +1,494 @@
+.medicos-visitadora {
+  padding: 0;
+}
+
+/* Search Section */
+.search-section {
+  padding: 20px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.2s;
+}
+
+.search-container:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input-medicos {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.search-input-medicos::placeholder {
+  color: #9ca3af;
+}
+
+/* Medicos Grid */
+.medicos-grid {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.medico-card-view {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.medico-card-view:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+}
+
+/* Botones de acción */
+.medico-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.btn-icon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-edit {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.btn-edit:hover {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-delete {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.btn-delete:hover {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* Modal */
+.modal-medico {
+  max-width: 600px;
+}
+
+.medico-form {
+  padding: 24px;
+}
+
+.medico-form .form-group {
+  margin-bottom: 16px;
+}
+
+.medico-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.medico-form .input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.medico-form .input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.medico-form textarea.input {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.medico-form .form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.medico-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.medico-avatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.medico-info-principal h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.especialidad-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: #ede9fe;
+  color: #7c3aed;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.medico-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.detail-item svg {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.detail-item a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.detail-item a:hover {
+  text-decoration: underline;
+}
+
+.direccion-completa,
+.referencia {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.direccion-label,
+.referencia-label {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.direccion-text,
+.referencia-text {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Empty State */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-state svg {
+  margin: 0 auto 16px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 18px;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.empty-state p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .medicos-grid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .search-section {
+    padding: 16px;
+  }
+}
+/* Ubicación GPS - Sección desplegable en tarjeta */
+.ubicacion-section {
+  margin-top: 12px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 12px;
+}
+
+.ubicacion-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.ubicacion-toggle:hover {
+  background: #f3f4f6;
+  border-color: #3b82f6;
+}
+
+.ubicacion-toggle span {
+  flex: 1;
+  text-align: left;
+}
+
+.ubicacion-content {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f0f9ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+}
+
+.coordenadas-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.coord-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.coord-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.coord-value {
+  font-family: 'Courier New', monospace;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.btn-google-maps {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-google-maps:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Ubicación GPS - Formulario en modal */
+.ubicacion-form-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0;
+  margin-bottom: 16px;
+}
+
+.ubicacion-form-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.ubicacion-form-toggle:hover {
+  background: #f3f4f6;
+}
+
+.ubicacion-form-toggle span {
+  flex: 1;
+  text-align: left;
+}
+
+.ubicacion-form-content {
+  padding: 16px;
+  background: white;
+}
+
+.ubicacion-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+  padding: 10px;
+  background: #f0f9ff;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
+}
+
+.ubicacion-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coordenadas-display {
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.coord-display-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.coord-display-item:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.coord-display-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.coord-display-value {
+  font-family: 'Courier New', monospace;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.ubicacion-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.ubicacion-buttons button {
+  flex: 1;
+}
+
+.btn-capturar-gps {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+}
+
+.btn-small {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* Responsive para ubicación */
+@media (max-width: 640px) {
+  .ubicacion-buttons {
+    flex-direction: column;
+  }
+
+  .ubicacion-buttons button {
+    width: 100%;
+  }
+}
