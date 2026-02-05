@@ -571,11 +571,10 @@ export default function DetalleVisitadora({ visitadoraId, onClose }) {
                                     </div>
                                   )}
                                   
-                                  {visita.observaciones && (
-                                    <div className="detail-row">
-                                      <p><strong>Observaciones:</strong> {visita.observaciones}</p>
-                                    </div>
-                                  )}
+                                  <div className="detail-row observaciones-row">
+                                    <p><strong>Observaciones:</strong></p>
+                                    <p className="observaciones-text">{visita.observaciones || 'Sin observaciones'}</p>
+                                  </div>
 
                                   {visita.latitud && visita.longitud && (
                                     <div className="detail-row">

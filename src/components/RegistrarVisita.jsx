@@ -117,6 +117,12 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
       return
     }
 
+    if (!formData.observaciones.trim()) {
+      setError('Debes agregar observaciones sobre la visita')
+      setLoading(false)
+      return
+    }
+
     if (!formData.latitud || !formData.longitud) {
       setError('Debes capturar tu ubicación GPS')
       setLoading(false)
@@ -342,7 +348,7 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
 
             {/* Observaciones */}
             <div className="form-section">
-              <label>Observaciones (opcional)</label>
+              <label>Observaciones *</label>
               <textarea
                 name="observaciones"
                 className="input"
@@ -350,6 +356,7 @@ export default function RegistrarVisita({ onClose, onSuccess }) {
                 placeholder="Notas adicionales sobre la visita..."
                 value={formData.observaciones}
                 onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
+                required
               />
             </div>
 
